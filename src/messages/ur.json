@@ -1,0 +1,566 @@
+{
+    "common": {
+        "appName": "اسٹون فلو",
+        "save": "محفوظ کریں",
+        "cancel": "منسوخ کریں",
+        "create": "بنائیں",
+        "edit": "ترمیم",
+        "delete": "حذف کریں",
+        "search": "تلاش کریں...",
+        "loading": "لوڈ ہو رہا ہے...",
+        "actions": "اقدامات",
+        "openMenu": "مینو کھولیں",
+        "back": "واپس",
+        "confirm": "تصدیق کریں",
+        "logout": "لاگ آؤٹ",
+        "language": "زبان",
+        "theme": "تھیم",
+        "themeLight": "روشن",
+        "themeDark": "تاریک",
+        "themeSystem": "سسٹم",
+        "name": "نام",
+        "email": "ای میل",
+        "role": "کردار",
+        "status": "حیثیت",
+        "plan": "پلان",
+        "createdAt": "تخلیق کی تاریخ",
+        "active": "فعال",
+        "inactive": "غیر فعال",
+        "pending": "زیر التواء",
+        "pro": "پرو",
+        "new": "نیا",
+        "account": "اکاؤنٹ",
+        "notFound": "صفحہ نہیں ملا",
+        "notFoundDescription": "آپ جو صفحہ تلاش کر رہے ہیں وہ موجود نہیں ہے۔",
+        "goHome": "ڈیش بورڈ پر جائیں",
+        "currency": "PKR"
+    },
+    "nav": {
+        "home": "ہوم",
+        "administration": "انتظامیہ",
+        "platform": "ورک اسپیسز",
+        "dashboard": "ڈیش بورڈ",
+        "adminOverview": "جائزہ",
+        "users": "صارفین",
+        "roles": "کردار اور اجازتیں",
+        "workspaces": "ورک اسپیسز",
+        "superAdminHome": "ہوم",
+        "adminCenter": "ایڈمن سینٹر",
+        "superAdmin": "سپر ایڈمن",
+        "branding": "برانڈنگ",
+        "settings": "سیٹنگز"
+    },
+    "settings": {
+        "title": "سیٹنگز",
+        "tabs": {
+            "bankCash": "بینک اور کیش",
+            "factories": "فیکٹریاں اور ٹرک نمبر",
+            "approval": "منظوری اور صارفین",
+            "rates": "ریٹ اور اقسام",
+            "sizes": "سائز اور سوٹ",
+            "machines": "مشینیں"
+        },
+        "bankCash": {
+            "total": "کل رقم",
+            "cash": "کیش",
+            "banks": "بینک",
+            "accounts": "اکاؤنٹس",
+            "noAccounts": "ابھی کوئی اکاؤنٹ نہیں",
+            "account": "اکاؤنٹ",
+            "date": "تاریخ",
+            "detail": "تفصیل",
+            "in": "آمد",
+            "out": "خرچ",
+            "balance": "بیلنس",
+            "reference": "حوالہ",
+            "note": "نوٹ",
+            "allEntries": "تمام اندراجات",
+            "moneyIn": "آمد",
+            "moneyOut": "خرچ",
+            "dateRange": "تاریخ کی حد منتخب کریں",
+            "flow": "آمد یا خرچ",
+            "bank": "بینک",
+            "clear": "تاریخ ہٹائیں",
+            "placeholders": {
+                "account": "اکاؤنٹ منتخب کریں",
+                "date": "تاریخ منتخب کریں",
+                "kind": "قسم منتخب کریں",
+                "name": "مثلاً HBL کرنٹ اکاؤنٹ",
+                "last4": "مثلاً 4471",
+                "openingBalance": "مثلاً 1,00,000",
+                "amount": "مثلاً 50,000",
+                "note": "مثلاً بجلی کا بل",
+                "counted": "مثلاً 1,96,400",
+                "reason": "مثلاً گنتی میں غلطی"
+            },
+            "transfer": "منتقلی",
+            "newEntry": "نئی اندراج",
+            "addAccount": "اکاؤنٹ شامل کریں",
+            "editAccount": "اکاؤنٹ میں ترمیم",
+            "deactivate": "غیر فعال کریں",
+            "accountMenu": "اکاؤنٹ مینو",
+            "kind": "قسم",
+            "kindCash": "کیش",
+            "kindBank": "بینک اکاؤنٹ",
+            "name": "اکاؤنٹ کا نام",
+            "last4": "اکاؤنٹ نمبر کے آخری 4 ہندسے",
+            "openingBalance": "ابتدائی بیلنس",
+            "openingDate": "ابتدائی تاریخ",
+            "amount": "رقم",
+            "noteOptional": "نوٹ (اختیاری)",
+            "fromAccount": "جس اکاؤنٹ سے",
+            "toAccount": "جس اکاؤنٹ میں",
+            "counted": "گنا ہوا کیش",
+            "inBooks": "کھاتے میں",
+            "difference": "فرق",
+            "reason": "وجہ",
+            "transferSummary": "{from} سے {to} میں {amount}۔",
+            "exceedsBalance": "{from} کے بیلنس ({balance}) سے زیادہ ہے۔",
+            "accountAdded": "اکاؤنٹ شامل ہو گیا",
+            "accountUpdated": "اکاؤنٹ اپ ڈیٹ ہو گیا",
+            "entrySaved": "اندراج محفوظ ہو گیا",
+            "transferred": "منتقلی محفوظ ہو گئی",
+            "deactivated": "اکاؤنٹ غیر فعال ہو گیا",
+            "deactivateTitle": "{name} غیر فعال کریں؟",
+            "deactivateDescription": "اکاؤنٹ فہرستوں میں نظر نہیں آئے گا۔ اس کی پرانی اندراجات محفوظ رہیں گی۔",
+            "types": {
+                "opening": "ابتدائی بیلنس",
+                "deposit": "جمع",
+                "otherReceipt": "دیگر وصولی",
+                "otherPayment": "دیگر ادائیگی",
+                "transfer": "منتقلی",
+                "adjustment": "کیش گنتی کی درستی",
+                "supplierPayment": "سپلائر کو ادائیگی",
+                "customerPayment": "گاہک سے وصولی",
+                "expense": "خرچہ"
+            }
+        }
+    },
+    "table": {
+        "noData": "کوئی ریکارڈ نہیں ملا",
+        "noDataDescription": "اپنی تلاش تبدیل کریں یا نیا ریکارڈ شامل کریں۔",
+        "rowsCount": "{count, plural, one {# ریکارڈ} other {# ریکارڈز}}",
+        "page": "صفحہ {page} از {total}",
+        "previous": "پچھلے صفحے پر جائیں",
+        "next": "اگلے صفحے پر جائیں",
+        "rowsPerPage": "فی صفحہ قطاریں",
+        "first": "پہلے صفحے پر جائیں",
+        "last": "آخری صفحے پر جائیں",
+        "selected": "{total} میں سے {selected} قطاریں منتخب۔",
+        "noResults": "کوئی نتیجہ نہیں۔",
+        "actionsMenu": "مینو کھولیں"
+    },
+    "validation": {
+        "required": "یہ فیلڈ ضروری ہے۔",
+        "email": "درست ای میل ایڈریس درج کریں۔",
+        "passwordMin": "پاس ورڈ کم از کم {count} حروف کا ہونا چاہیے۔",
+        "passwordMatch": "پاس ورڈ مماثل نہیں ہیں۔",
+        "company": "3 سے 40 چھوٹے حروف، اعداد یا ہائفن استعمال کریں۔",
+        "amount": "صفر سے زیادہ رقم درج کریں۔",
+        "nonNegative": "صفر یا اس سے زیادہ درج کریں۔",
+        "last4": "آخری 4 ہندسے درج کریں۔",
+        "differentAccounts": "دو مختلف اکاؤنٹ منتخب کریں۔"
+    },
+    "auth": {
+        "email": "ای میل",
+        "emailPlaceholder": "me@example.com",
+        "password": "پاس ورڈ",
+        "passwordPlaceholder": "اپنا پاس ورڈ درج کریں",
+        "confirmPassword": "پاس ورڈ کی تصدیق",
+        "showPassword": "پاس ورڈ دکھائیں",
+        "hidePassword": "پاس ورڈ چھپائیں",
+        "login": {
+            "title": "اپنے اکاؤنٹ میں لاگ ان کریں",
+            "description": "{company} میں سائن ان کریں",
+            "submit": "لاگ ان",
+            "forgot": "پاس ورڈ بھول گئے؟",
+            "wrongCompany": "یہ آپ کی کمپنی نہیں؟",
+            "changeCompany": "کمپنی تبدیل کریں",
+            "errors": {
+                "invalid": "کمپنی یا لاگ ان کی تفصیلات غلط ہیں۔",
+                "throttled": "بہت زیادہ کوششیں۔ بعد میں دوبارہ کوشش کریں۔",
+                "unavailable": "سرور سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
+            }
+        },
+        "forgot": {
+            "title": "پاس ورڈ بھول گئے؟",
+            "description": "اپنی ای میل درج کریں، ہم آپ کو ری سیٹ لنک بھیجیں گے",
+            "submit": "ری سیٹ لنک بھیجیں",
+            "backToLogin": "لاگ ان پر واپس جائیں",
+            "sentTitle": "اپنی ای میل چیک کریں",
+            "sentDescription": "ہم نے {email} پر پاس ورڈ ری سیٹ لنک بھیج دیا ہے"
+        },
+        "setPassword": {
+            "title": "نیا پاس ورڈ سیٹ کریں",
+            "description": "اپنے اکاؤنٹ کے لیے مضبوط پاس ورڈ منتخب کریں",
+            "submit": "پاس ورڈ محفوظ کریں",
+            "success": "پاس ورڈ اپ ڈیٹ ہو گیا"
+        },
+        "identifier": "فون یا ای میل",
+        "identifierPlaceholder": "03001234567 یا me@example.com",
+        "company": {
+            "title": "اپنی کمپنی تلاش کریں",
+            "description": "اپنے لاگ ان لنک میں موجود کمپنی کا نام درج کریں",
+            "label": "کمپنی",
+            "placeholder": "lahore-marble",
+            "submit": "جاری رکھیں",
+            "invalid": "براہ کرم درست کمپنی کا نام درج کریں۔",
+            "notFound": "درست کمپنی کا نام درج کریں۔"
+        },
+        "firstName": "پہلا نام",
+        "lastName": "آخری نام (اختیاری)",
+        "invite": {
+            "title": "{company} میں شامل ہوں",
+            "description": "آپ کو {role} کے طور پر مدعو کیا گیا ہے۔ شروع کرنے کے لیے نام اور پاس ورڈ منتخب کریں۔",
+            "descriptionNoRole": "شروع کرنے کے لیے نام اور پاس ورڈ منتخب کریں۔",
+            "submit": "اکاؤنٹ بنائیں اور شامل ہوں",
+            "haveAccount": "پہلے سے اکاؤنٹ ہے؟",
+            "logIn": "لاگ ان کریں",
+            "accountExists": "اس فون یا ای میل کا اکاؤنٹ پہلے سے موجود ہے۔ جاری رکھنے کے لیے لاگ ان کریں۔"
+        },
+        "link": {
+            "invalidTitle": "یہ لنک استعمال نہیں ہو سکتا",
+            "invalidDescription": "ہو سکتا ہے اس کی میعاد ختم ہو گئی ہو یا یہ پہلے استعمال ہو چکا ہو۔ اپنے ایڈمنسٹریٹر سے نیا لنک مانگیں۔",
+            "unavailable": "سرور سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
+        }
+    },
+    "workspace": {
+        "title": "ورک اسپیس منتخب کریں",
+        "description": "وہ ورک اسپیس منتخب کریں جس کے ساتھ آپ جاری رکھنا چاہتے ہیں",
+        "enter": "کھولیں",
+        "switcher": "ورک اسپیسز",
+        "plans": {
+            "free": "مفت",
+            "pro": "پرو",
+            "enterprise": "انٹرپرائز"
+        },
+        "members": "{count, plural, one {# رکن} other {# ارکان}}",
+        "empty": "آپ ابھی کسی ورک اسپیس کے رکن نہیں ہیں۔",
+        "selectFailed": "یہ ورک اسپیس نہیں کھل سکا۔ دوبارہ کوشش کریں۔"
+    },
+    "user": {
+        "upgrade": "پرو میں اپ گریڈ کریں",
+        "account": "اکاؤنٹ",
+        "billing": "بلنگ",
+        "notifications": "اطلاعات"
+    },
+    "dashboard": {
+        "title": "ڈیش بورڈ",
+        "quickCreate": "فوری تخلیق",
+        "stats": {
+            "revenue": "کل آمدنی",
+            "revenueFooter": "اس ماہ اضافہ ہو رہا ہے",
+            "revenueNote": "پچھلے 6 ماہ کے وزیٹرز",
+            "customers": "نئے صارفین",
+            "customersFooter": "اس مدت میں 20 فیصد کمی",
+            "customersNote": "نئے صارفین پر توجہ درکار ہے",
+            "accounts": "فعال اکاؤنٹس",
+            "accountsFooter": "صارفین کی مضبوط برقراری",
+            "accountsNote": "شمولیت اہداف سے زیادہ ہے",
+            "growth": "شرحِ نمو",
+            "growthFooter": "کارکردگی میں مستقل بہتری",
+            "growthNote": "نمو کے اندازوں کے مطابق"
+        },
+        "visitors": {
+            "title": "کل وزیٹرز",
+            "description": "{range} کا مجموعہ",
+            "desktop": "ڈیسک ٹاپ",
+            "mobile": "موبائل",
+            "select": "قدر منتخب کریں"
+        },
+        "ranges": {
+            "90d": "پچھلے 3 ماہ",
+            "30d": "پچھلے 30 دن",
+            "7d": "پچھلے 7 دن"
+        },
+        "rangeSentence": {
+            "90d": "پچھلے 3 ماہ",
+            "30d": "پچھلے 30 دن",
+            "7d": "پچھلے 7 دن"
+        },
+        "documents": {
+            "tabs": {
+                "outline": "خاکہ",
+                "pastPerformance": "ماضی کی کارکردگی",
+                "keyPersonnel": "اہم افراد",
+                "focusDocuments": "اہم دستاویزات"
+            },
+            "selectView": "منظر منتخب کریں",
+            "customizeColumns": "کالم حسبِ ضرورت بنائیں",
+            "columnsShort": "کالم",
+            "addSection": "سیکشن شامل کریں",
+            "columns": {
+                "header": "عنوان",
+                "type": "سیکشن کی قسم",
+                "status": "حیثیت",
+                "target": "ہدف",
+                "limit": "حد",
+                "reviewer": "جائزہ کار"
+            },
+            "status": {
+                "done": "مکمل",
+                "inProcess": "زیر عمل"
+            },
+            "dragToReorder": "ترتیب بدلنے کے لیے گھسیٹیں",
+            "selectAll": "سب منتخب کریں",
+            "selectRow": "قطار منتخب کریں",
+            "assignReviewer": "جائزہ کار مقرر کریں",
+            "saving": "{name} محفوظ ہو رہا ہے",
+            "saved": "مکمل",
+            "saveFailed": "خرابی",
+            "menu": {
+                "edit": "ترمیم",
+                "copy": "نقل بنائیں",
+                "favorite": "پسندیدہ",
+                "delete": "حذف کریں"
+            },
+            "drawer": {
+                "description": "اس سیکشن کی تفصیلات میں ترمیم کریں",
+                "submit": "جمع کریں",
+                "done": "مکمل",
+                "selectType": "قسم منتخب کریں",
+                "selectStatus": "حیثیت منتخب کریں",
+                "selectReviewer": "جائزہ کار منتخب کریں"
+            }
+        }
+    },
+    "admin": {
+        "overview": {
+            "title": "ایڈمن سینٹر",
+            "description": "اپنی تنظیم، افراد اور رسائی کا انتظام کریں۔"
+        },
+        "users": {
+            "title": "صارفین",
+            "description": "وہ لوگ جو اس کمپنی میں سائن ان کر سکتے ہیں۔",
+            "tabs": {
+                "active": "فعال",
+                "invited": "مدعو",
+                "inactive": "غیر فعال"
+            },
+            "statuses": {
+                "active": "فعال",
+                "invited": "مدعو",
+                "inactive": "غیر فعال"
+            },
+            "columns": {
+                "user": "صارف",
+                "role": "کردار",
+                "status": "حالت",
+                "joined": "شمولیت",
+                "expires": "لنک کی میعاد"
+            },
+            "allRoles": "تمام کردار",
+            "actions": {
+                "changeRole": "کردار تبدیل کریں",
+                "resetLink": "پاس ورڈ لنک حاصل کریں",
+                "deactivate": "غیر فعال کریں",
+                "activate": "فعال کریں",
+                "reinvite": "نیا لنک بھیجیں",
+                "revoke": "دعوت منسوخ کریں"
+            },
+            "invite": {
+                "open": "صارف کو مدعو کریں",
+                "title": "صارف کو مدعو کریں",
+                "description": "انہیں نام اور پاس ورڈ سیٹ کرنے کا لنک ملے گا۔",
+                "identifier": "فون یا ای میل",
+                "identifierPlaceholder": "03001234567 یا name@example.com",
+                "role": "کردار",
+                "hint": "لنک آپ خود شیئر کرتے ہیں، مثلاً واٹس ایپ پر۔ یہ ایک بار کام کرتا ہے اور 7 دن میں ختم ہو جاتا ہے۔",
+                "submit": "دعوتی لنک بنائیں"
+            },
+            "share": {
+                "inviteTitle": "دعوتی لنک تیار ہے",
+                "inviteDescription": "یہ لنک اس شخص کو بھیجیں جسے آپ نے مدعو کیا ہے۔",
+                "resetTitle": "پاس ورڈ لنک تیار ہے",
+                "resetDescription": "یہ لنک بھیجیں تاکہ وہ نیا پاس ورڈ منتخب کر سکیں۔",
+                "copy": "لنک کاپی کریں",
+                "whatsapp": "واٹس ایپ پر شیئر کریں",
+                "done": "مکمل",
+                "expires": "میعاد: {date}"
+            },
+            "changeRole": {
+                "title": "کردار تبدیل کریں",
+                "description": "{name} کے لیے نیا کردار منتخب کریں۔"
+            },
+            "confirm": {
+                "deactivateTitle": "صارف کو غیر فعال کریں؟",
+                "deactivateDescription": "{name} سائن ان نہیں کر سکیں گے۔ آپ بعد میں انہیں دوبارہ فعال کر سکتے ہیں۔",
+                "deactivateAction": "غیر فعال کریں",
+                "activateTitle": "صارف کو فعال کریں؟",
+                "activateDescription": "{name} دوبارہ سائن ان کر سکیں گے۔",
+                "activateAction": "فعال کریں",
+                "revokeTitle": "دعوت منسوخ کریں؟",
+                "revokeDescription": "{name} کو بھیجا گیا لنک کام کرنا بند کر دے گا۔",
+                "revokeAction": "منسوخ کریں"
+            },
+            "toast": {
+                "activated": "صارف فعال ہو گیا",
+                "deactivated": "صارف غیر فعال ہو گیا",
+                "revoked": "دعوت منسوخ ہو گئی",
+                "roleChanged": "کردار تبدیل ہو گیا"
+            },
+            "errors": {
+                "generic": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
+                "forbidden": "آپ کو اس کی اجازت نہیں ہے۔",
+                "alreadyMember": "یہ شخص پہلے سے رکن ہے۔",
+                "invalidPhone": "درست فون نمبر درج کریں۔",
+                "phoneOrEmailRequired": "فون نمبر یا ای میل درج کریں۔",
+                "phoneAndEmailBelongToDifferentUsers": "یہ فون اور ای میل مختلف لوگوں کے ہیں۔",
+                "cannotInviteAsOwner": "کسی کو مالک کے طور پر مدعو نہیں کیا جا سکتا۔",
+                "cannotAssignOwner": "کسی کو مالک نہیں بنایا جا سکتا۔",
+                "invitationPending": "اس شخص نے ابھی دعوت قبول نہیں کی۔"
+            },
+            "roles": {
+                "owner": "مالک",
+                "partner": "پارٹنر",
+                "manager": "منیجر",
+                "munshi": "منشی",
+                "viewer": "ناظر"
+            }
+        },
+        "roles": {
+            "title": "کردار اور اجازتیں",
+            "description": "طے کریں کہ ہر کردار کیا دیکھ اور کر سکتا ہے۔",
+            "usersCount": "صارفین",
+            "descriptionField": "تفصیل",
+            "role": "کردار",
+            "system": "سسٹم",
+            "soonTitle": "اجازتیں جلد آ رہی ہیں",
+            "soonDescription": "ہر کمپنی کے پاس یہ پانچ کردار ہوتے ہیں۔ ہر کردار کیا دیکھ اور کر سکتا ہے، اسے تبدیل کرنا اگلے مرحلے میں شامل ہوگا۔",
+            "descriptions": {
+                "owner": "کمپنی کا مالک۔ مکمل رسائی؛ ہٹایا یا تبدیل نہیں کیا جا سکتا۔",
+                "partner": "مالک کے ساتھ کاروبار چلاتا ہے۔ لوگوں اور تمام شعبوں کا انتظام کرتا ہے۔",
+                "manager": "روزمرہ کام سنبھالتا ہے۔ لوگوں کی فہرست دیکھ سکتا ہے۔",
+                "munshi": "روزانہ کی اندراجات جیسے فروخت، اسٹاک اور پیداوار درج کرتا ہے۔",
+                "viewer": "معلومات دیکھ سکتا ہے لیکن تبدیل نہیں کر سکتا۔"
+            }
+        },
+        "branding": {
+            "title": "برانڈنگ",
+            "description": "اپنی کمپنی میں سب کے لیے اسٹون فلو کی طے شدہ شکل منتخب کریں۔",
+            "themeTitle": "رنگوں کی تھیم",
+            "themeDescription": "یہ {company} میں سب کے لیے طے شدہ ہے۔ لوگ اوپر والی بار کے تھیم مینو سے اپنی پسند کی تھیم بھی منتخب کر سکتے ہیں۔",
+            "current": "موجودہ",
+            "save": "تھیم محفوظ کریں",
+            "saved": "کمپنی کی تھیم اپ ڈیٹ ہو گئی",
+            "unchanged": "یہی کمپنی کی تھیم ہے۔",
+            "personalNote": "آپ نے اس ڈیوائس پر اپنی تھیم منتخب کی ہے، اس لیے آپ کو وہی نظر آتی ہے۔ کمپنی کی تھیم دیکھنے کے لیے تھیم مینو میں \"کمپنی کی طے شدہ\" منتخب کریں۔",
+            "errors": {
+                "generic": "تھیم محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
+                "forbidden": "کمپنی کی تھیم صرف مالک یا پارٹنر تبدیل کر سکتا ہے۔"
+            }
+        }
+    },
+    "superAdmin": {
+        "login": {
+            "title": "سپر ایڈمن لاگ ان",
+            "description": "محدود علاقہ۔ صرف مجاز افراد کے لیے۔"
+        },
+        "home": {
+            "title": "ورک اسپیسز کا جائزہ",
+            "description": "تمام ورک اسپیسز کی صحت اور استعمال۔"
+        },
+        "workspaces": {
+            "title": "ورک اسپیسز",
+            "description": "تمام کسٹمر ورک اسپیسز۔",
+            "add": "ورک اسپیس شامل کریں",
+            "columns": {
+                "workspace": "ورک اسپیس",
+                "owner": "مالک",
+                "platforms": "پلیٹ فارمز",
+                "status": "حالت",
+                "created": "تاریخِ اندراج"
+            },
+            "statuses": {
+                "active": "فعال",
+                "suspended": "معطل"
+            },
+            "allStatuses": "تمام حالتیں",
+            "noPlatforms": "کوئی نہیں",
+            "platforms": {
+                "factory": "فیکٹری",
+                "showroom": "شو روم",
+                "mine": "کان"
+            },
+            "platformHints": {
+                "factory": "کٹائی، پالش اور پیداوار۔",
+                "showroom": "سیلز کاؤنٹر اور نمائش کا اسٹاک۔",
+                "mine": "کان اور کھدائی کا کام۔"
+            },
+            "create": {
+                "title": "ورک اسپیس شامل کریں",
+                "description": "کمپنی بنائیں، اس کے پلیٹ فارمز منتخب کریں اور اس کے مالک کو مدعو کریں۔",
+                "name": "ورک اسپیس کا نام",
+                "slug": "ورک اسپیس کا یو آر ایل نام",
+                "slugHint": "لاگ ان لنک میں استعمال ہوتا ہے، مثلاً /lahore-marble/login۔ بعد میں تبدیل نہیں ہو سکتا۔",
+                "ownerSection": "مالک",
+                "ownerFirstName": "پہلا نام",
+                "ownerLastName": "آخری نام (اختیاری)",
+                "ownerContact": "فون یا ای میل",
+                "ownerContactPlaceholder": "03001234567 یا owner@example.com",
+                "platforms": "اجازت یافتہ پلیٹ فارمز",
+                "platformsHint": "آپ انہیں بعد میں تبدیل کر سکتے ہیں۔",
+                "platformsRequired": "کم از کم ایک پلیٹ فارم منتخب کریں۔",
+                "submit": "ورک اسپیس بنائیں"
+            },
+            "share": {
+                "title": "ورک اسپیس بن گئی",
+                "description": "یہ لنک {name} کے مالک کو بھیجیں تاکہ وہ پاس ورڈ سیٹ کر کے سائن ان کر سکیں۔"
+            },
+            "actions": {
+                "managePlatforms": "پلیٹ فارمز کا انتظام",
+                "suspend": "معطل کریں",
+                "reactivate": "دوبارہ فعال کریں"
+            },
+            "manage": {
+                "title": "اجازت یافتہ پلیٹ فارمز",
+                "description": "منتخب کریں کہ {name} کون سے پلیٹ فارمز استعمال کر سکتی ہے۔",
+                "readOnly": "پلیٹ فارمز صرف سپر ایڈمن تبدیل کر سکتا ہے۔"
+            },
+            "confirm": {
+                "suspendTitle": "ورک اسپیس معطل کریں؟",
+                "suspendDescription": "دوبارہ فعال ہونے تک {name} میں کوئی سائن ان نہیں کر سکے گا۔ ان کا ڈیٹا محفوظ رہے گا۔",
+                "suspendAction": "معطل کریں",
+                "reactivateTitle": "ورک اسپیس دوبارہ فعال کریں؟",
+                "reactivateDescription": "{name} میں لوگ دوبارہ سائن ان کر سکیں گے۔",
+                "reactivateAction": "دوبارہ فعال کریں"
+            },
+            "toast": {
+                "created": "ورک اسپیس بن گئی",
+                "suspended": "ورک اسپیس معطل ہو گئی",
+                "reactivated": "ورک اسپیس دوبارہ فعال ہو گئی",
+                "platformOn": "{platform} فعال ہو گیا",
+                "platformOff": "{platform} بند ہو گیا"
+            },
+            "errors": {
+                "generic": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
+                "forbidden": "یہ صرف سپر ایڈمن کر سکتا ہے۔",
+                "slugAlreadyTaken": "یہ یو آر ایل نام پہلے سے استعمال میں ہے۔",
+                "slugOrOwnerAlreadyExists": "یہ یو آر ایل نام یا مالک پہلے سے موجود ہے۔",
+                "slugInvalid": "یہ یو آر ایل نام قابلِ قبول نہیں۔ 3 سے 40 حروف، اعداد یا ہائفن استعمال کریں، اور admin یا login جیسے مخصوص الفاظ سے بچیں۔",
+                "invalidPhone": "درست فون نمبر درج کریں۔",
+                "phoneOrEmailRequired": "مالک کا فون نمبر یا ای میل درج کریں۔",
+                "phoneAndEmailBelongToDifferentUsers": "یہ فون اور ای میل مختلف لوگوں کے ہیں۔"
+            },
+            "platformShort": {
+                "factory": "فی",
+                "showroom": "شو",
+                "mine": "کا"
+            }
+        }
+    },
+    "theme": {
+        "colorTheme": "رنگوں کی تھیم",
+        "companyDefault": "کمپنی کی طے شدہ",
+        "names": {
+            "tangerine": "ٹینجرین",
+            "twitter": "ٹوئٹر",
+            "amber-minimal": "ایمبر منیمل",
+            "violet-bloom": "وایلٹ بلوم",
+            "northern-lights": "ناردرن لائٹس",
+            "darkmatter": "ڈارک میٹر",
+            "candyland": "کینڈی لینڈ",
+            "vercel": "ورسل"
+        }
+    }
+}

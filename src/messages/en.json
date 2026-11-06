@@ -1,0 +1,566 @@
+{
+    "common": {
+        "appName": "Stone Flow",
+        "save": "Save",
+        "cancel": "Cancel",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "search": "Search...",
+        "loading": "Loading...",
+        "actions": "Actions",
+        "openMenu": "Open menu",
+        "back": "Back",
+        "confirm": "Confirm",
+        "logout": "Log out",
+        "language": "Language",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "themeSystem": "System",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "plan": "Plan",
+        "createdAt": "Created",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "pro": "Pro",
+        "new": "New",
+        "account": "Account",
+        "notFound": "Page not found",
+        "notFoundDescription": "The page you are looking for does not exist.",
+        "goHome": "Go to dashboard",
+        "currency": "PKR"
+    },
+    "nav": {
+        "home": "Home",
+        "administration": "Administration",
+        "platform": "Workspaces",
+        "dashboard": "Dashboard",
+        "adminOverview": "Overview",
+        "users": "Users",
+        "roles": "Roles & privileges",
+        "workspaces": "Workspaces",
+        "superAdminHome": "Home",
+        "adminCenter": "Admin center",
+        "superAdmin": "Super admin",
+        "branding": "Branding",
+        "settings": "Settings"
+    },
+    "settings": {
+        "title": "Settings",
+        "tabs": {
+            "bankCash": "Bank & Cash",
+            "factories": "Factories & Truck Numbers",
+            "approval": "Approval & Users",
+            "rates": "Rates & Categories",
+            "sizes": "Sizes & Soot",
+            "machines": "Machines"
+        },
+        "bankCash": {
+            "total": "Total balance",
+            "cash": "Cash",
+            "banks": "Banks",
+            "accounts": "Accounts",
+            "noAccounts": "No accounts yet",
+            "account": "Account",
+            "date": "Date",
+            "detail": "Detail",
+            "in": "In",
+            "out": "Out",
+            "balance": "Balance",
+            "reference": "Reference",
+            "note": "Note",
+            "allEntries": "All entries",
+            "moneyIn": "Money in",
+            "moneyOut": "Money out",
+            "dateRange": "Select date range",
+            "flow": "Money in or out",
+            "bank": "Bank",
+            "clear": "Clear date",
+            "placeholders": {
+                "account": "Select account",
+                "date": "Select date",
+                "kind": "Select type",
+                "name": "e.g. HBL Current A/C",
+                "last4": "e.g. 4471",
+                "openingBalance": "e.g. 1,00,000",
+                "amount": "e.g. 50,000",
+                "note": "e.g. Electricity bill",
+                "counted": "e.g. 1,96,400",
+                "reason": "e.g. Counting mistake"
+            },
+            "transfer": "Transfer",
+            "newEntry": "New entry",
+            "addAccount": "Add account",
+            "editAccount": "Edit account",
+            "deactivate": "Deactivate",
+            "accountMenu": "Account menu",
+            "kind": "Type",
+            "kindCash": "Cash in hand",
+            "kindBank": "Bank account",
+            "name": "Account name",
+            "last4": "Last 4 digits of account number",
+            "openingBalance": "Opening balance",
+            "openingDate": "Opening date",
+            "amount": "Amount",
+            "noteOptional": "Note (optional)",
+            "fromAccount": "From account",
+            "toAccount": "To account",
+            "counted": "Cash counted",
+            "inBooks": "In books",
+            "difference": "Difference",
+            "reason": "Reason",
+            "transferSummary": "{amount} from {from} to {to}.",
+            "exceedsBalance": "More than the balance of {from} ({balance}).",
+            "accountAdded": "Account added",
+            "accountUpdated": "Account updated",
+            "entrySaved": "Entry saved",
+            "transferred": "Transfer saved",
+            "deactivated": "Account deactivated",
+            "deactivateTitle": "Deactivate {name}?",
+            "deactivateDescription": "The account is hidden from the lists. Its past entries are kept.",
+            "types": {
+                "opening": "Opening balance",
+                "deposit": "Deposit",
+                "otherReceipt": "Other receipt",
+                "otherPayment": "Other payment",
+                "transfer": "Transfer",
+                "adjustment": "Cash count adjustment",
+                "supplierPayment": "Supplier payment",
+                "customerPayment": "Customer payment",
+                "expense": "Expense"
+            }
+        }
+    },
+    "table": {
+        "noData": "No records found",
+        "noDataDescription": "Try changing your search or add a new record.",
+        "rowsCount": "{count, plural, one {# record} other {# records}}",
+        "page": "Page {page} of {total}",
+        "previous": "Go to previous page",
+        "next": "Go to next page",
+        "rowsPerPage": "Rows per page",
+        "first": "Go to first page",
+        "last": "Go to last page",
+        "selected": "{selected} of {total} row(s) selected.",
+        "noResults": "No results.",
+        "actionsMenu": "Open menu"
+    },
+    "validation": {
+        "required": "This field is required.",
+        "email": "Enter a valid email address.",
+        "passwordMin": "Password must be at least {count} characters.",
+        "passwordMatch": "Passwords do not match.",
+        "company": "Use 3-40 lowercase letters, numbers or hyphens.",
+        "amount": "Enter an amount above zero.",
+        "nonNegative": "Enter zero or more.",
+        "last4": "Enter the last 4 digits.",
+        "differentAccounts": "Choose two different accounts."
+    },
+    "auth": {
+        "email": "Email",
+        "emailPlaceholder": "me@example.com",
+        "password": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "confirmPassword": "Confirm password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "login": {
+            "title": "Login to your account",
+            "description": "Signing in to {company}",
+            "submit": "Login",
+            "forgot": "Forgot your password?",
+            "wrongCompany": "Not your company?",
+            "changeCompany": "Change company",
+            "errors": {
+                "invalid": "Invalid company or credentials.",
+                "throttled": "Too many attempts. Try again later.",
+                "unavailable": "Cannot reach the server. Try again."
+            }
+        },
+        "forgot": {
+            "title": "Forgot password?",
+            "description": "Enter your email and we will send you a reset link",
+            "submit": "Send reset link",
+            "backToLogin": "Back to login",
+            "sentTitle": "Check your email",
+            "sentDescription": "We sent a password reset link to {email}"
+        },
+        "setPassword": {
+            "title": "Set a new password",
+            "description": "Choose a strong password for your account",
+            "submit": "Save password",
+            "success": "Password updated"
+        },
+        "identifier": "Phone or email",
+        "identifierPlaceholder": "03001234567 or me@example.com",
+        "company": {
+            "title": "Find your company",
+            "description": "Enter your company name as it appears in your login link",
+            "label": "Company",
+            "placeholder": "lahore-marble",
+            "submit": "Continue",
+            "invalid": "Please enter valid company name.",
+            "notFound": "Enter a valid company name."
+        },
+        "firstName": "First name",
+        "lastName": "Last name (optional)",
+        "invite": {
+            "title": "Join {company}",
+            "description": "You were invited as {role}. Choose a name and password to get started.",
+            "descriptionNoRole": "Choose a name and password to get started.",
+            "submit": "Create account and join",
+            "haveAccount": "Already have an account?",
+            "logIn": "Log in",
+            "accountExists": "This phone or email already has an account. Log in to continue."
+        },
+        "link": {
+            "invalidTitle": "This link cannot be used",
+            "invalidDescription": "It may have expired or already been used. Ask your administrator for a new link.",
+            "unavailable": "Cannot reach the server. Try again."
+        }
+    },
+    "workspace": {
+        "title": "Select a workspace",
+        "description": "Choose the workspace you want to continue with",
+        "enter": "Open",
+        "switcher": "Workspaces",
+        "plans": {
+            "free": "Free",
+            "pro": "Pro",
+            "enterprise": "Enterprise"
+        },
+        "members": "{count, plural, one {# member} other {# members}}",
+        "empty": "You are not a member of any workspace yet.",
+        "selectFailed": "Could not open this workspace. Try again."
+    },
+    "user": {
+        "upgrade": "Upgrade to Pro",
+        "account": "Account",
+        "billing": "Billing",
+        "notifications": "Notifications"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "quickCreate": "Quick create",
+        "stats": {
+            "revenue": "Total revenue",
+            "revenueFooter": "Trending up this month",
+            "revenueNote": "Visitors for the last 6 months",
+            "customers": "New customers",
+            "customersFooter": "Down 20% this period",
+            "customersNote": "Acquisition needs attention",
+            "accounts": "Active accounts",
+            "accountsFooter": "Strong user retention",
+            "accountsNote": "Engagement exceeds targets",
+            "growth": "Growth rate",
+            "growthFooter": "Steady performance increase",
+            "growthNote": "Meets growth projections"
+        },
+        "visitors": {
+            "title": "Total visitors",
+            "description": "Total for the {range}",
+            "desktop": "Desktop",
+            "mobile": "Mobile",
+            "select": "Select a value"
+        },
+        "ranges": {
+            "90d": "Last 3 months",
+            "30d": "Last 30 days",
+            "7d": "Last 7 days"
+        },
+        "rangeSentence": {
+            "90d": "last 3 months",
+            "30d": "last 30 days",
+            "7d": "last 7 days"
+        },
+        "documents": {
+            "tabs": {
+                "outline": "Outline",
+                "pastPerformance": "Past Performance",
+                "keyPersonnel": "Key Personnel",
+                "focusDocuments": "Focus Documents"
+            },
+            "selectView": "Select a view",
+            "customizeColumns": "Customize Columns",
+            "columnsShort": "Columns",
+            "addSection": "Add Section",
+            "columns": {
+                "header": "Header",
+                "type": "Section Type",
+                "status": "Status",
+                "target": "Target",
+                "limit": "Limit",
+                "reviewer": "Reviewer"
+            },
+            "status": {
+                "done": "Done",
+                "inProcess": "In Process"
+            },
+            "dragToReorder": "Drag to reorder",
+            "selectAll": "Select all",
+            "selectRow": "Select row",
+            "assignReviewer": "Assign reviewer",
+            "saving": "Saving {name}",
+            "saved": "Done",
+            "saveFailed": "Error",
+            "menu": {
+                "edit": "Edit",
+                "copy": "Make a copy",
+                "favorite": "Favorite",
+                "delete": "Delete"
+            },
+            "drawer": {
+                "description": "Edit the details of this section",
+                "submit": "Submit",
+                "done": "Done",
+                "selectType": "Select a type",
+                "selectStatus": "Select a status",
+                "selectReviewer": "Select a reviewer"
+            }
+        }
+    },
+    "admin": {
+        "overview": {
+            "title": "Admin center",
+            "description": "Manage your organization, people and access."
+        },
+        "users": {
+            "title": "Users",
+            "description": "People who can sign in to this company.",
+            "tabs": {
+                "active": "Active",
+                "invited": "Invited",
+                "inactive": "Inactive"
+            },
+            "statuses": {
+                "active": "Active",
+                "invited": "Invited",
+                "inactive": "Inactive"
+            },
+            "columns": {
+                "user": "User",
+                "role": "Role",
+                "status": "Status",
+                "joined": "Joined",
+                "expires": "Link expires"
+            },
+            "allRoles": "All roles",
+            "actions": {
+                "changeRole": "Change role",
+                "resetLink": "Get password link",
+                "deactivate": "Deactivate",
+                "activate": "Activate",
+                "reinvite": "Send new link",
+                "revoke": "Revoke invitation"
+            },
+            "invite": {
+                "open": "Invite user",
+                "title": "Invite user",
+                "description": "They get a link to set their name and password.",
+                "identifier": "Phone or email",
+                "identifierPlaceholder": "03001234567 or name@example.com",
+                "role": "Role",
+                "hint": "You share the link yourself, for example on WhatsApp. It works once and expires in 7 days.",
+                "submit": "Create invite link"
+            },
+            "share": {
+                "inviteTitle": "Invite link ready",
+                "inviteDescription": "Send this link to the person you invited.",
+                "resetTitle": "Password link ready",
+                "resetDescription": "Send this link so they can choose a new password.",
+                "copy": "Copy link",
+                "whatsapp": "Share on WhatsApp",
+                "done": "Done",
+                "expires": "Expires {date}"
+            },
+            "changeRole": {
+                "title": "Change role",
+                "description": "Choose a new role for {name}."
+            },
+            "confirm": {
+                "deactivateTitle": "Deactivate user?",
+                "deactivateDescription": "{name} will no longer be able to sign in. You can activate them again later.",
+                "deactivateAction": "Deactivate",
+                "activateTitle": "Activate user?",
+                "activateDescription": "{name} will be able to sign in again.",
+                "activateAction": "Activate",
+                "revokeTitle": "Revoke invitation?",
+                "revokeDescription": "The link sent to {name} will stop working.",
+                "revokeAction": "Revoke"
+            },
+            "toast": {
+                "activated": "User activated",
+                "deactivated": "User deactivated",
+                "revoked": "Invitation revoked",
+                "roleChanged": "Role changed"
+            },
+            "errors": {
+                "generic": "Something went wrong. Try again.",
+                "forbidden": "You do not have permission to do that.",
+                "alreadyMember": "This person is already a member.",
+                "invalidPhone": "Enter a valid phone number.",
+                "phoneOrEmailRequired": "Enter a phone number or an email.",
+                "phoneAndEmailBelongToDifferentUsers": "That phone and email belong to different people.",
+                "cannotInviteAsOwner": "Nobody can be invited as Owner.",
+                "cannotAssignOwner": "Nobody can be made Owner.",
+                "invitationPending": "This person has not accepted their invitation yet."
+            },
+            "roles": {
+                "owner": "Owner",
+                "partner": "Partner",
+                "manager": "Manager",
+                "munshi": "Munshi",
+                "viewer": "Viewer"
+            }
+        },
+        "roles": {
+            "title": "Roles & privileges",
+            "description": "Control what each role can see and do.",
+            "usersCount": "Users",
+            "descriptionField": "Description",
+            "role": "Role",
+            "system": "System",
+            "soonTitle": "Permissions are coming soon",
+            "soonDescription": "Every company has these five roles. Editing what each role can see and do will be added next.",
+            "descriptions": {
+                "owner": "Owns the company. Full access; cannot be removed or changed.",
+                "partner": "Runs the business with the owner. Manages people and all areas.",
+                "manager": "Manages day-to-day work. Can see the people list.",
+                "munshi": "Records daily entries such as sales, stock and production.",
+                "viewer": "Can look at information but not change it."
+            }
+        },
+        "branding": {
+            "title": "Branding",
+            "description": "Choose the default look of Stone Flow for everyone in your company.",
+            "themeTitle": "Color theme",
+            "themeDescription": "This is the default for everyone in {company}. People can still pick their own theme from the theme menu in the top bar.",
+            "current": "Current",
+            "save": "Save theme",
+            "saved": "Company theme updated",
+            "unchanged": "This is already the company theme.",
+            "personalNote": "You chose your own theme on this device, so you still see that one. Pick \"Company default\" in the theme menu to see the company theme.",
+            "errors": {
+                "generic": "Could not save the theme. Try again.",
+                "forbidden": "Only an owner or partner can change the company theme."
+            }
+        }
+    },
+    "superAdmin": {
+        "login": {
+            "title": "Super admin login",
+            "description": "Restricted area. Authorized personnel only."
+        },
+        "home": {
+            "title": "Workspaces overview",
+            "description": "Health and usage across all workspaces."
+        },
+        "workspaces": {
+            "title": "Workspaces",
+            "description": "All customer workspaces.",
+            "add": "Add workspace",
+            "columns": {
+                "workspace": "Workspace",
+                "owner": "Owner",
+                "platforms": "Platforms",
+                "status": "Status",
+                "created": "Created"
+            },
+            "statuses": {
+                "active": "Active",
+                "suspended": "Suspended"
+            },
+            "allStatuses": "All statuses",
+            "noPlatforms": "None",
+            "platforms": {
+                "factory": "Factory",
+                "showroom": "Showroom",
+                "mine": "Mine"
+            },
+            "platformHints": {
+                "factory": "Cutting, polishing and production.",
+                "showroom": "Sales counter and stock on display.",
+                "mine": "Quarry and mine operations."
+            },
+            "create": {
+                "title": "Add workspace",
+                "description": "Create a company, choose its platforms and invite its owner.",
+                "name": "Workspace name",
+                "slug": "Workspace URL name",
+                "slugHint": "Used in the login link, for example /lahore-marble/login. Cannot be changed later.",
+                "ownerSection": "Owner",
+                "ownerFirstName": "First name",
+                "ownerLastName": "Last name (optional)",
+                "ownerContact": "Phone or email",
+                "ownerContactPlaceholder": "03001234567 or owner@example.com",
+                "platforms": "Allowed platforms",
+                "platformsHint": "You can change these later.",
+                "platformsRequired": "Choose at least one platform.",
+                "submit": "Create workspace"
+            },
+            "share": {
+                "title": "Workspace created",
+                "description": "Send this link to the owner of {name} so they can set a password and sign in."
+            },
+            "actions": {
+                "managePlatforms": "Manage platforms",
+                "suspend": "Suspend",
+                "reactivate": "Reactivate"
+            },
+            "manage": {
+                "title": "Allowed platforms",
+                "description": "Choose which platforms {name} can use.",
+                "readOnly": "Only a super admin can change platforms."
+            },
+            "confirm": {
+                "suspendTitle": "Suspend workspace?",
+                "suspendDescription": "Nobody in {name} will be able to sign in until it is reactivated. Their data is kept.",
+                "suspendAction": "Suspend",
+                "reactivateTitle": "Reactivate workspace?",
+                "reactivateDescription": "{name} will be able to sign in again.",
+                "reactivateAction": "Reactivate"
+            },
+            "toast": {
+                "created": "Workspace created",
+                "suspended": "Workspace suspended",
+                "reactivated": "Workspace reactivated",
+                "platformOn": "{platform} enabled",
+                "platformOff": "{platform} disabled"
+            },
+            "errors": {
+                "generic": "Something went wrong. Try again.",
+                "forbidden": "Only a super admin can do that.",
+                "slugAlreadyTaken": "That workspace URL name is already taken.",
+                "slugOrOwnerAlreadyExists": "That URL name or owner already exists.",
+                "slugInvalid": "That URL name is not allowed. Use 3-40 letters, numbers or hyphens, and avoid reserved words like admin or login.",
+                "invalidPhone": "Enter a valid phone number.",
+                "phoneOrEmailRequired": "Enter the owner phone number or email.",
+                "phoneAndEmailBelongToDifferentUsers": "That phone and email belong to different people."
+            },
+            "platformShort": {
+                "factory": "FA",
+                "showroom": "SH",
+                "mine": "MI"
+            }
+        }
+    },
+    "theme": {
+        "colorTheme": "Color theme",
+        "companyDefault": "Company default",
+        "names": {
+            "tangerine": "Tangerine",
+            "twitter": "Twitter",
+            "amber-minimal": "Amber Minimal",
+            "violet-bloom": "Violet Bloom",
+            "northern-lights": "Northern Lights",
+            "darkmatter": "Darkmatter",
+            "candyland": "Candyland",
+            "vercel": "Vercel"
+        }
+    }
+}
