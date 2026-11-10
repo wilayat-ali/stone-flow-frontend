@@ -8,7 +8,6 @@ import { LinkTabs } from '@/components/shared/link-tabs'
 const tabs = [
     { href: '/settings/bank-cash', key: 'bankCash' },
     { href: '/settings/factories', key: 'factories' },
-    { href: '/settings/approval', key: 'approval' },
     { href: '/settings/rates', key: 'rates' },
     { href: '/settings/sizes', key: 'sizes' },
     { href: '/settings/machines', key: 'machines' },

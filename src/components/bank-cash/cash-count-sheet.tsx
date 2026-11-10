@@ -11,6 +11,7 @@ import { DateField, SelectField, TextField } from '@/components/shared/form-fiel
 import { bankCashKey, postEntries } from '@/features/bank-cash/api'
 import { cashCountSchema, type CashCountValues } from '@/features/bank-cash/schemas'
 import type { AccountOption } from '@/features/bank-cash/types'
+import { useErrorMessage } from '@/features/bank-cash/use-error-message'
 import { useMoney } from '@/hooks/use-money'
 import { cn } from '@/lib/utils'
 import { todayIso } from '@/lib/format'
@@ -31,6 +32,7 @@ export function CashCountSheet({
     const tv = useTranslations('validation')
     const money = useMoney()
     const queryClient = useQueryClient()
+    const errorMessage = useErrorMessage()
     const schema = useMemo(() => cashCountSchema(tv), [tv])
     const onlyId = accounts.length === 1 ? accounts[0].id : ''
 
@@ -67,6 +69,7 @@ export function CashCountSheet({
             onOpenChange(false)
             queryClient.invalidateQueries({ queryKey: bankCashKey })
         },
+        onError: (error) => toast.error(errorMessage(error)),
     })
 
     return (

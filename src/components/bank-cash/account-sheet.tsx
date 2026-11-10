@@ -11,6 +11,7 @@ import { DateField, SelectField, TextField } from '@/components/shared/form-fiel
 import { bankCashKey, createAccount, updateAccount } from '@/features/bank-cash/api'
 import { accountSchema, type AccountValues } from '@/features/bank-cash/schemas'
 import type { Account } from '@/features/bank-cash/types'
+import { useErrorMessage } from '@/features/bank-cash/use-error-message'
 import { todayIso } from '@/lib/format'
 
 const emptyValues = (kind: AccountValues['kind']): AccountValues => ({
@@ -21,23 +22,22 @@ const emptyValues = (kind: AccountValues['kind']): AccountValues => ({
     openingDate: todayIso(),
 })
 
-/** Add a new account, or edit `account`. There is one cash account per company. */
+/** Add a new account, or edit `account`. A company may have several cash accounts and banks. */
 export function AccountSheet({
     open,
     onOpenChange,
     account,
-    canAddCash,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     /** The account being edited; omit to add one. */
     account?: Account
-    canAddCash: boolean
 }) {
     const t = useTranslations('settings.bankCash')
     const tc = useTranslations('common')
     const tv = useTranslations('validation')
     const queryClient = useQueryClient()
+    const errorMessage = useErrorMessage()
     const schema = useMemo(() => accountSchema(tv), [tv])
 
     const form = useForm<AccountValues>({
@@ -76,6 +76,7 @@ export function AccountSheet({
             onOpenChange(false)
             queryClient.invalidateQueries({ queryKey: bankCashKey })
         },
+        onError: (error) => toast.error(errorMessage(error)),
     })
 
     const kind = useWatch({ control: form.control, name: 'kind' })
@@ -98,7 +99,7 @@ export function AccountSheet({
                     label={t('kind')}
                     placeholder={t('placeholders.kind')}
                     options={[
-                        ...(canAddCash ? [{ value: 'cash', label: t('kindCash') }] : []),
+                        { value: 'cash', label: t('kindCash') },
                         { value: 'bank', label: t('kindBank') },
                     ]}
                 />
@@ -115,20 +116,25 @@ export function AccountSheet({
                     autoComplete="off"
                 />
             )}
-            <TextField
-                control={form.control}
-                name="openingBalance"
-                label={t('openingBalance')}
-                placeholder={t('placeholders.openingBalance')}
-                inputMode="decimal"
-                autoComplete="off"
-            />
-            <DateField
-                control={form.control}
-                name="openingDate"
-                label={t('openingDate')}
-                placeholder={t('placeholders.date')}
-            />
+            {/* The opening balance is the first row of the account's history, so it cannot be edited. */}
+            {!account && (
+                <>
+                    <TextField
+                        control={form.control}
+                        name="openingBalance"
+                        label={t('openingBalance')}
+                        placeholder={t('placeholders.openingBalance')}
+                        inputMode="decimal"
+                        autoComplete="off"
+                    />
+                    <DateField
+                        control={form.control}
+                        name="openingDate"
+                        label={t('openingDate')}
+                        placeholder={t('placeholders.date')}
+                    />
+                </>
+            )}
         </FormSheet>
     )
 }

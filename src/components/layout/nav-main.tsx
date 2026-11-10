@@ -9,15 +9,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import type { NavGroup } from '@/config/nav'
+import { isNavItemActive, type NavGroup } from '@/config/nav'
 
 /** Based on the shadcn `sidebar-07` NavMain, fed from `config/nav.ts`. */
 export function NavMain({ groups }: { groups: NavGroup[] }) {
     const t = useTranslations('nav')
     const pathname = usePathname()
-
-    const isActive = (href: string) =>
-        pathname === href || pathname.startsWith(`${href}/`)
 
     return (
         <>
@@ -30,7 +27,7 @@ export function NavMain({ groups }: { groups: NavGroup[] }) {
                                 <SidebarMenuButton
                                     asChild
                                     tooltip={t(item.titleKey)}
-                                    isActive={isActive(item.href)}
+                                    isActive={isNavItemActive(item, pathname)}
                                 >
                                     <Link href={item.href}>
                                         <item.icon />

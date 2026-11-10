@@ -13,7 +13,7 @@ export const ROUTES = {
     forgotPassword: '/forgot-password',
     selectWorkspace: '/select-workspace',
     dashboard: '/dashboard',
-    adminCenter: '/admin-center/overview',
+    adminCenter: '/admin-center/users',
     superAdminLogin: '/s-admin/auth/login',
     superAdminHome: '/s-admin/home',
 } as const

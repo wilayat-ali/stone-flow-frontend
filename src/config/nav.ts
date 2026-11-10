@@ -1,7 +1,6 @@
 import {
     Building2,
     LayoutDashboard,
-    LayoutGrid,
     Palette,
     Settings,
     ShieldCheck,
@@ -20,6 +19,20 @@ export type NavItem = {
     badge?: 'new' | 'pro'
     /** Limits who sees this item; omit it to show it to everyone who sees the group. */
     roles?: RoleKey[]
+    /**
+     * Path prefix this item counts as active for, when `href` only points at one sub-page
+     * of a wider section (e.g. Settings always opens on Bank & Cash, but every settings tab
+     * should still highlight it and show its title). Defaults to `href`.
+     */
+    match?: string
+}
+
+/** The path(s) a nav item should be treated as active for. */
+export const navItemMatch = (item: NavItem) => item.match ?? item.href
+
+export const isNavItemActive = (item: NavItem, pathname: string) => {
+    const base = navItemMatch(item)
+    return pathname === base || pathname.startsWith(`${base}/`)
 }
 
 /** `roles` limits who sees the group; omit it to show it to everyone. */
@@ -38,6 +51,7 @@ export const appNav: NavGroup[] = [
             {
                 titleKey: 'settings',
                 href: '/settings/bank-cash',
+                match: '/settings',
                 icon: Settings,
                 roles: SETTINGS_ROLES,
             },
@@ -47,11 +61,6 @@ export const appNav: NavGroup[] = [
         labelKey: 'administration',
         roles: ADMIN_VIEW_ROLES,
         items: [
-            {
-                titleKey: 'adminOverview',
-                href: '/admin-center/overview',
-                icon: LayoutGrid,
-            },
             { titleKey: 'users', href: '/admin-center/users', icon: Users },
             {
                 titleKey: 'roles',

@@ -10,6 +10,7 @@ import {
     Pencil,
     Plus,
     Power,
+    TriangleAlert,
     Wallet,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -42,6 +43,7 @@ import {
     type StatementRow,
 } from '@/features/bank-cash/ledger'
 import type { AccountKind, AccountOption } from '@/features/bank-cash/types'
+import { useErrorMessage } from '@/features/bank-cash/use-error-message'
 import { useMoney } from '@/hooks/use-money'
 import { formatLakh } from '@/lib/format'
 import { AccountSheet } from './account-sheet'
@@ -59,6 +61,7 @@ export function BankCashPage() {
     const tc = useTranslations('common')
     const money = useMoney()
     const queryClient = useQueryClient()
+    const errorMessage = useErrorMessage()
     const accounts = useQuery({ queryKey: accountsKey, queryFn: listAccounts })
     const entries = useQuery({ queryKey: entriesKey, queryFn: listEntries })
     const [selectedId, setSelectedId] = useState<string>()
@@ -107,6 +110,10 @@ export function BankCashPage() {
             setSelectedId(undefined)
             queryClient.invalidateQueries({ queryKey: bankCashKey })
         },
+        onError: (error) => {
+            toast.error(errorMessage(error))
+            setDeactivatingId(null)
+        },
     })
 
     if (accounts.isLoading || entries.isLoading) {
@@ -118,7 +125,27 @@ export function BankCashPage() {
         )
     }
 
-    const canAddCash = !(accounts.data ?? []).some((a) => a.kind === 'cash')
+    // Without this a stopped server would read as "No accounts yet".
+    if (accounts.isError || entries.isError) {
+        return (
+            <EmptyState
+                title={t('loadFailed')}
+                icon={TriangleAlert}
+                action={
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            accounts.refetch()
+                            entries.refetch()
+                        }}
+                    >
+                        {t('retry')}
+                    </Button>
+                }
+            />
+        )
+    }
+
     const balance = (id: string) => balances.get(id) ?? 0
     const sumOf = (kind?: AccountKind) =>
         active
@@ -146,7 +173,6 @@ export function BankCashPage() {
                         ? active.find((a) => a.id === editingId)
                         : undefined
                 }
-                canAddCash={canAddCash}
             />
             <MoneyEntrySheet
                 mode={moneyMode}
@@ -236,7 +262,7 @@ export function BankCashPage() {
 
             <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
                 <SelectableList
-                    className="bg-card h-80 rounded-xl border px-2 shadow-xs [--list-fade:var(--card)] lg:h-0 lg:min-h-full"
+                    className="bg-card h-80 overflow-hidden rounded-xl border px-2 shadow-xs [--list-fade:var(--card)] lg:h-0 lg:min-h-full"
                     label={t('accounts')}
                     selectedId={selected.id}
                     onSelect={setSelectedId}

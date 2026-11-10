@@ -29,12 +29,17 @@ export async function request<T>(
 
 /**
  * Short code the backend gives for a failure, such as `alreadyMember` or
- * `invalidPhone` (from `errors.<field>` or `message`), else null.
+ * `invalidPhone` (from `errors.<field>`, `code` or `message`), else null.
  */
 export function errorCode(error: unknown): string | null {
     if (!(error instanceof ApiError)) return null
-    const body = error.body as { message?: unknown; errors?: Record<string, unknown> } | null
+    const body = error.body as {
+        message?: unknown
+        code?: unknown
+        errors?: Record<string, unknown>
+    } | null
     const nested = body?.errors && Object.values(body.errors).find((v) => typeof v === 'string')
     if (typeof nested === 'string') return nested
+    if (typeof body?.code === 'string') return body.code
     return typeof body?.message === 'string' ? body.message : null
 }

@@ -52,6 +52,8 @@ export type DataTableProps<T> = {
     onRowClick?: (row: T) => void
     /** Fills the space left on screen: the rows scroll (header stays) and the pager stays in view, so the page does not scroll. */
     fill?: boolean
+    /** With `fill`: keep the table the full height left on screen even with few rows, instead of shrinking to them. */
+    stretch?: boolean
 }
 
 /** Searchable, sortable, paginated table styled like the dashboard-01 block table. */
@@ -64,6 +66,7 @@ export function DataTable<T>({
     toolbar,
     onRowClick,
     fill,
+    stretch,
 }: DataTableProps<T>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = useState('')
@@ -111,7 +114,11 @@ export function DataTable<T>({
                             : undefined
                     }
                     style={
-                        fill && height ? { maxHeight: height - 2 } : undefined
+                        fill && height
+                            ? stretch
+                                ? { height: height - 2 }
+                                : { maxHeight: height - 2 }
+                            : undefined
                     }
                 >
                     <Table>
@@ -225,21 +232,16 @@ export function DataTable<T>({
             </div>
 
             <div ref={footerRef}>
-                {table.getPageCount() > 1 ? (
-                    <div>
-                        <TablePagination
-                            table={table}
-                            labels={labels}
-                            summary={labels.rows(
-                                table.getFilteredRowModel().rows.length
-                            )}
-                        />
-                    </div>
-                ) : (
-                    <p className="text-muted-foreground px-4 text-sm">
-                        {labels.rows(table.getFilteredRowModel().rows.length)}
-                    </p>
-                )}
+                {/*
+                 * Always the full pager, even for one page: its own nav buttons already disable
+                 * themselves then. Hiding the rows-per-page select for a single page previously
+                 * trapped anyone who had just raised it enough to collapse to one page.
+                 */}
+                <TablePagination
+                    table={table}
+                    labels={labels}
+                    summary={labels.rows(table.getFilteredRowModel().rows.length)}
+                />
             </div>
         </div>
     )

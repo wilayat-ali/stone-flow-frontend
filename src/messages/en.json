@@ -40,7 +40,6 @@
         "administration": "Administration",
         "platform": "Workspaces",
         "dashboard": "Dashboard",
-        "adminOverview": "Overview",
         "users": "Users",
         "roles": "Roles & privileges",
         "workspaces": "Workspaces",
@@ -55,7 +54,6 @@
         "tabs": {
             "bankCash": "Bank & Cash",
             "factories": "Factories & Truck Numbers",
-            "approval": "Approval & Users",
             "rates": "Rates & Categories",
             "sizes": "Sizes & Soot",
             "machines": "Machines"
@@ -132,8 +130,147 @@
                 "adjustment": "Cash count adjustment",
                 "supplierPayment": "Supplier payment",
                 "customerPayment": "Customer payment",
-                "expense": "Expense"
+                "expense": "Expense",
+                "reversal": "Reversal",
+                "other": "Other entry"
+            },
+            "loadFailed": "Could not load this. Check your connection and try again.",
+            "retry": "Try again",
+            "errors": {
+                "generic": "Something went wrong. Nothing was saved.",
+                "ACCOUNT_HAS_BALANCE": "This account still holds money. Move it out first.",
+                "CASH_ACCOUNT_REQUIRED": "Keep at least one cash account.",
+                "CASH_ACCOUNT_MISSING": "Add the cash in hand account first.",
+                "ACCOUNT_INACTIVE": "That account is deactivated.",
+                "invalidDate": "Enter a real date.",
+                "mustBeBank": "Choose a bank account.",
+                "mustDifferFromSource": "Choose two different accounts.",
+                "required": "This field is required.",
+                "notFound": "That account could not be found. Refresh and try again.",
+                "mustBeCash": "Choose a cash account."
             }
+        },
+        "factories": {
+            "title": "Factories",
+            "description": "Your own factories and the other factories you send cutting work to.",
+            "create": "Add factory",
+            "createTitle": "Add factory",
+            "editTitle": "Edit factory",
+            "deleteTitle": "Deactivate factory?",
+            "deleteDescription": "{name} is hidden from the lists you pick a factory from. Its past records are kept.",
+            "created": "Factory added",
+            "updated": "Factory updated",
+            "deleted": "Factory deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Factory name",
+            "fieldNamePlaceholder": "e.g. Saadat Marble — Main Factory",
+            "fieldKind": "Type",
+            "kindOwn": "Own factory",
+            "kindCutting": "Cutting factory",
+            "fieldRatePerTon": "Rate per ton",
+            "fieldRatePerTonPlaceholder": "e.g. 350 (cutting factories only)"
+        },
+        "workerRates": {
+            "title": "Worker job rates",
+            "description": "What each job is paid: per ton, per sq.ft, daily or monthly.",
+            "create": "Add rate",
+            "createTitle": "Add rate",
+            "editTitle": "Edit rate",
+            "deleteTitle": "Deactivate rate?",
+            "deleteDescription": "{name} is hidden from the lists you pick a job rate from. Its past records are kept.",
+            "created": "Rate added",
+            "updated": "Rate updated",
+            "deleted": "Rate deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Job or role",
+            "fieldNamePlaceholder": "e.g. Thekadar — Vertical Cutting",
+            "fieldPayType": "Pay type",
+            "fieldRate": "Rate (PKR)",
+            "fieldRatePlaceholder": "e.g. 450",
+            "payType": {
+                "perTon": "Per ton",
+                "perSqft": "Per sq.ft",
+                "daily": "Daily",
+                "monthly": "Monthly"
+            },
+            "unit": {
+                "perTon": "/ton",
+                "perSqft": "/sq.ft",
+                "daily": "/day",
+                "monthly": "/month"
+            }
+        },
+        "expenseCategories": {
+            "title": "Expense categories",
+            "description": "The categories expenses are recorded against.",
+            "create": "Add category",
+            "createTitle": "Add category",
+            "editTitle": "Edit category",
+            "deleteTitle": "Deactivate category?",
+            "deleteDescription": "{name} is hidden from the lists you pick a category from. Its past records are kept.",
+            "created": "Category added",
+            "updated": "Category updated",
+            "deleted": "Category deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Category name",
+            "fieldNamePlaceholder": "e.g. Spare parts"
+        },
+        "machines": {
+            "title": "Machines",
+            "description": "Each machine, its factory and its thekadar (most factories run one shift).",
+            "create": "Add machine",
+            "createTitle": "Add machine",
+            "editTitle": "Edit machine",
+            "deleteTitle": "Deactivate machine?",
+            "deleteDescription": "{name} is hidden from the lists you pick a machine from. Its past records are kept.",
+            "created": "Machine added",
+            "updated": "Machine updated",
+            "deleted": "Machine deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Machine name",
+            "fieldNamePlaceholder": "e.g. Vertical Cutter 1",
+            "fieldType": "Type",
+            "fieldFactory": "Factory",
+            "fieldDayThekadar": "Day thekadar",
+            "fieldDayThekadarPlaceholder": "e.g. Rashid Khan",
+            "fieldNightThekadar": "Night thekadar (optional)",
+            "fieldNightThekadarPlaceholder": "Leave blank for one shift",
+            "type": {
+                "vertical": "Vertical",
+                "gangSaw": "Gang saw",
+                "monolama": "Monolama",
+                "blockCutter": "Block cutter"
+            }
+        },
+        "sootSizes": {
+            "title": "Soot sizes",
+            "description": "The sizes vertical-cutting output is recorded against.",
+            "create": "Add size",
+            "createTitle": "Add size",
+            "editTitle": "Edit size",
+            "deleteTitle": "Deactivate size?",
+            "deleteDescription": "{name} is hidden from the lists you pick a size from. Its past records are kept.",
+            "created": "Size added",
+            "updated": "Size updated",
+            "deleted": "Size deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Size name",
+            "fieldNamePlaceholder": "e.g. 14 soot"
+        },
+        "counterWidths": {
+            "title": "Counter widths",
+            "description": "The widths available when recording stock.",
+            "create": "Add width",
+            "createTitle": "Add width",
+            "editTitle": "Edit width",
+            "deleteTitle": "Deactivate width?",
+            "deleteDescription": "{name} is hidden from the lists you pick a width from. Its past records are kept.",
+            "created": "Width added",
+            "updated": "Width updated",
+            "deleted": "Width deactivated",
+            "deactivate": "Deactivate",
+            "fieldName": "Width name",
+            "fieldNamePlaceholder": "e.g. 2 inch"
         }
     },
     "table": {
@@ -159,7 +296,8 @@
         "amount": "Enter an amount above zero.",
         "nonNegative": "Enter zero or more.",
         "last4": "Enter the last 4 digits.",
-        "differentAccounts": "Choose two different accounts."
+        "differentAccounts": "Choose two different accounts.",
+        "wholeAmount": "Enter a whole number of rupees."
     },
     "auth": {
         "email": "Email",
@@ -325,10 +463,6 @@
         }
     },
     "admin": {
-        "overview": {
-            "title": "Admin center",
-            "description": "Manage your organization, people and access."
-        },
         "users": {
             "title": "Users",
             "description": "People who can sign in to this company.",
@@ -427,6 +561,12 @@
             "system": "System",
             "soonTitle": "Permissions are coming soon",
             "soonDescription": "Every company has these five roles. Editing what each role can see and do will be added next.",
+            "approval": {
+                "title": "Approval",
+                "description": "Munshi entries for purchases, payments and stock wait for approval before they count. Owner and Partner entries are always approved automatically.",
+                "switchLabel": "Require approval for munshi entries",
+                "updated": "Approval setting updated"
+            },
             "descriptions": {
                 "owner": "Owns the company. Full access; cannot be removed or changed.",
                 "partner": "Runs the business with the owner. Manages people and all areas.",

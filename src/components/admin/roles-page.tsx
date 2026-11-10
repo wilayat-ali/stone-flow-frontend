@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/shared/data-table'
 import { PageHeader } from '@/components/shared/page-header'
 import { listMembers, membersKey } from '@/features/admin/members'
-import { roleKeys, type RoleKey } from '@/features/admin/roles'
+import { canManageMembers, roleKeys, type RoleKey } from '@/features/admin/roles'
 import { useTableLabels } from '@/features/resource-labels'
+import { ApprovalSettingCard } from './approval-setting-card'
 
 type Row = { key: RoleKey; members: number }
 
 /** The five system roles every company gets. Read-only until the permission matrix exists. */
-export function RolesPage() {
+export function RolesPage({ roleKey }: { roleKey?: string }) {
     const t = useTranslations('admin.roles')
     const tu = useTranslations('admin.users')
     const format = useFormatter()
@@ -69,6 +70,7 @@ export function RolesPage() {
     return (
         <div className="flex flex-col gap-4">
             <PageHeader title={t('title')} description={t('description')} />
+            <ApprovalSettingCard canManage={canManageMembers(roleKey)} />
             <Alert>
                 <Info />
                 <AlertTitle>{t('soonTitle')}</AlertTitle>

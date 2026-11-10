@@ -1,4 +1,5 @@
-/** Tab content comes later; the tab shell comes from the settings layout. */
+import { SizesPage } from '@/components/settings/sizes-page'
+
 export default function Page() {
-    return null
+    return <SizesPage />
 }

@@ -9,7 +9,7 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
-import { appNav, superAdminNav } from '@/config/nav'
+import { appNav, isNavItemActive, superAdminNav } from '@/config/nav'
 import type { Workspace } from '@/features/workspace/data'
 import { AppSidebar } from './app-sidebar'
 import { LanguageSwitcher } from './language-switcher'
@@ -32,10 +32,7 @@ export function AppShell({ children, ...sidebarProps }: AppShellProps) {
 
     const activeItem = groups
         .flatMap((group) => group.items)
-        .find(
-            (item) =>
-                pathname === item.href || pathname.startsWith(`${item.href}/`)
-        )
+        .find((item) => isNavItemActive(item, pathname))
 
     return (
         <SidebarProvider

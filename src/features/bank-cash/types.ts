@@ -26,6 +26,8 @@ export const entryTypes = [
     'supplierPayment',
     'customerPayment',
     'expense',
+    'reversal',
+    'other',
 ] as const
 
 export type EntryType = (typeof entryTypes)[number]

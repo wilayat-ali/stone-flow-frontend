@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 
 const MIN_HEIGHT = 240
 /** Breathing room under the pager, so it never touches the screen edge. */
-const SAFETY = 16
+const SAFETY = 24
 
 const scrollParentOf = (el: HTMLElement) => {
     for (let node = el.parentElement; node; node = node.parentElement) {

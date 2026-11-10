@@ -160,6 +160,7 @@ export function StatementTable({
             toolbar={toolbar}
             onRowClick={onRowClick}
             fill
+            stretch
         />
     )
 }

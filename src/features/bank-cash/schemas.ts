@@ -1,9 +1,15 @@
 import { z } from 'zod'
 
-type Message = (key: 'required' | 'amount' | 'nonNegative' | 'last4' | 'differentAccounts') => string
+type Message = (
+    key: 'required' | 'amount' | 'wholeAmount' | 'nonNegative' | 'last4' | 'differentAccounts'
+) => string
 
 const money = (message: Message) =>
-    z.string().trim().refine((v) => Number(v) > 0, message('amount'))
+    z
+        .string()
+        .trim()
+        .refine((v) => Number(v) > 0, message('amount'))
+        .refine((v) => Number.isInteger(Number(v)), message('wholeAmount'))
 
 const date = (message: Message) => z.string().min(1, message('required'))
 
@@ -17,7 +23,8 @@ export const accountSchema = (message: Message) =>
                 .string()
                 .trim()
                 .min(1, message('required'))
-                .refine((v) => Number(v) >= 0, message('nonNegative')),
+                .refine((v) => Number(v) >= 0, message('nonNegative'))
+                .refine((v) => Number.isInteger(Number(v)), message('wholeAmount')),
             openingDate: date(message),
         })
         .superRefine((values, ctx) => {
@@ -63,7 +70,8 @@ export const cashCountSchema = (message: Message) =>
             .string()
             .trim()
             .min(1, message('required'))
-            .refine((v) => Number(v) >= 0, message('nonNegative')),
+            .refine((v) => Number(v) >= 0, message('nonNegative'))
+            .refine((v) => Number.isInteger(Number(v)), message('wholeAmount')),
         reason: z.string().trim().min(1, message('required')),
     })
 

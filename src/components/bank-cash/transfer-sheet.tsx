@@ -11,6 +11,7 @@ import { DateField, SelectField, TextField } from '@/components/shared/form-fiel
 import { bankCashKey, postEntries } from '@/features/bank-cash/api'
 import { transferSchema, type TransferValues } from '@/features/bank-cash/schemas'
 import type { AccountOption } from '@/features/bank-cash/types'
+import { useErrorMessage } from '@/features/bank-cash/use-error-message'
 import { useMoney } from '@/hooks/use-money'
 import { todayIso } from '@/lib/format'
 
@@ -31,6 +32,7 @@ export function TransferSheet({
     const tv = useTranslations('validation')
     const money = useMoney()
     const queryClient = useQueryClient()
+    const errorMessage = useErrorMessage()
     const schema = useMemo(() => transferSchema(tv), [tv])
 
     const form = useForm<TransferValues>({
@@ -59,6 +61,7 @@ export function TransferSheet({
             onOpenChange(false)
             queryClient.invalidateQueries({ queryKey: bankCashKey })
         },
+        onError: (error) => toast.error(errorMessage(error)),
     })
 
     const [fromId, toId, amount] = useWatch({ control: form.control, name: ['fromId', 'toId', 'amount'] })

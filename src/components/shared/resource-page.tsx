@@ -29,6 +29,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet'
 import { useDirection } from '@/hooks/use-direction'
+import { cn } from '@/lib/utils'
 import { ConfirmDialog } from './confirm-dialog'
 import { DataTable, type DataTableLabels } from './data-table'
 import { SelectField, TextareaField, TextField } from './form-fields'
@@ -78,6 +79,13 @@ export type ResourcePageProps<T extends { id: string }, V extends FieldValues> =
     toFormValues: (row: T) => V
     getRowName: (row: T) => string
     labels: ResourceLabels
+    /**
+     * Caps the table to the screen's remaining height with its own internal scroll, instead of
+     * growing with its rows. Default on, since that's right for a page with one table (e.g.
+     * Factories); turn off for a page that stacks more than one `ResourcePage`, where each one
+     * claiming "the rest of the screen" would add up to taller than the screen.
+     */
+    fill?: boolean
 }
 
 /**
@@ -94,6 +102,7 @@ export function ResourcePage<T extends { id: string }, V extends FieldValues>({
     toFormValues,
     getRowName,
     labels,
+    fill = true,
 }: ResourcePageProps<T, V>) {
     const queryClient = useQueryClient()
     const { isRtl } = useDirection()
@@ -186,7 +195,7 @@ export function ResourcePage<T extends { id: string }, V extends FieldValues>({
     )
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className={cn('flex flex-col gap-6', fill && 'min-h-0 flex-1')}>
             <PageHeader
                 title={labels.title}
                 description={labels.description}
@@ -202,6 +211,7 @@ export function ResourcePage<T extends { id: string }, V extends FieldValues>({
                 data={data}
                 loading={isLoading}
                 labels={labels}
+                fill={fill}
             />
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

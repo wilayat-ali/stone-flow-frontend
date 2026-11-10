@@ -11,6 +11,7 @@ import { DateField, SelectField, TextField } from '@/components/shared/form-fiel
 import { bankCashKey, postEntries } from '@/features/bank-cash/api'
 import { entrySchema, type EntryValues } from '@/features/bank-cash/schemas'
 import type { AccountOption, Direction, EntryType } from '@/features/bank-cash/types'
+import { useErrorMessage } from '@/features/bank-cash/use-error-message'
 import { todayIso } from '@/lib/format'
 
 export type MoneyMode = 'deposit' | 'otherReceipt' | 'otherPayment'
@@ -38,6 +39,7 @@ export function MoneyEntrySheet({
     const tc = useTranslations('common')
     const tv = useTranslations('validation')
     const queryClient = useQueryClient()
+    const errorMessage = useErrorMessage()
     const schema = useMemo(() => entrySchema(tv), [tv])
 
     const form = useForm<EntryValues>({
@@ -69,6 +71,7 @@ export function MoneyEntrySheet({
             onClose()
             queryClient.invalidateQueries({ queryKey: bankCashKey })
         },
+        onError: (error) => toast.error(errorMessage(error)),
     })
 
     return (
