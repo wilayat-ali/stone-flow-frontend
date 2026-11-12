@@ -45,7 +45,7 @@ export function TextField<T extends FieldValues>({
                 <FormItem className={className}>
                     <FormLabel>{label}</FormLabel>
                     <FormControl>
-                        <Input {...inputProps} {...field} />
+                        <Input placeholder={label} {...inputProps} {...field} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -125,7 +125,7 @@ export function TextareaField<T extends FieldValues>({
                 <FormItem className={className}>
                     <FormLabel>{label}</FormLabel>
                     <FormControl>
-                        <Textarea {...props} {...field} />
+                        <Textarea placeholder={label} {...props} {...field} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -185,7 +185,7 @@ export function SelectField<T extends FieldValues>({
                     <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder={placeholder} />
+                                <SelectValue placeholder={placeholder ?? label} />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>

@@ -10,16 +10,17 @@ export const expenseCategoriesQueryKey = 'expense-categories'
 
 // In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
 let categories: ExpenseCategory[] = [
-    'Worker advances',
-    'Salaries',
-    'Spare parts',
-    'Lunch / tea',
-    'Guests',
-    'Water tanker',
-    'Drain powder',
-    'Maintenance',
-    'Electricity',
-].map((name) => ({ id: crypto.randomUUID(), name, isActive: true }))
+    ['machine-parts', 'Machine & spare parts'],
+    ['maintenance', 'Maintenance'],
+    ['electrical', 'Electrical maintenance'],
+    ['electricity', 'Electricity bill'],
+    ['water', 'Water tanker'],
+    ['drain', 'Drain powder & cleaning'],
+    ['lunch-tea', 'Lunch & tea'],
+    ['guests', 'Guests'],
+    ['diesel', 'Diesel & transport'],
+    ['other', 'Other'],
+].map(([id, name]) => ({ id, name, isActive: true }))
 
 /** Nothing is ever hard-deleted, so a deactivated category is simply left out of the list. */
 export const listExpenseCategories = async (): Promise<ExpenseCategory[]> => {

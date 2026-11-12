@@ -32,6 +32,7 @@ export function ApprovalSettingCard({ canManage }: { canManage: boolean }) {
             toast.success(t('updated'))
             queryClient.invalidateQueries({ queryKey: companySettingsKey })
         },
+        onError: () => toast.error(t('saveFailed')),
     })
 
     return (

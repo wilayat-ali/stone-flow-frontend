@@ -62,3 +62,6 @@ export const deactivateWorkerRate = async (id: string): Promise<void> => {
     await delay()
     workerRates = workerRates.map((r) => (r.id === id ? { ...r, isActive: false } : r))
 }
+
+/** The rate card's PKR per sq.ft for a job name, or 0 when the card has none (read straight from the list, for other modules). */
+export const rateForJob = (job: string) => workerRates.find((r) => r.isActive && r.payType === 'perSqft' && r.name === job)?.rate ?? 0

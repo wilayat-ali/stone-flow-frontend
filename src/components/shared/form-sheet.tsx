@@ -56,18 +56,12 @@ export function FormSheet<V extends FieldValues>({
                     </SheetDescription>
                 </SheetHeader>
                 <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex flex-1 flex-col gap-4 px-4"
-                        noValidate
-                    >
-                        {children}
-                        {summary && (
-                            <div className="bg-muted text-muted-foreground rounded-md p-3 text-sm">
-                                {summary}
-                            </div>
-                        )}
-                        <SheetFooter className="mt-auto px-0">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col" noValidate>
+                        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
+                            {children}
+                            {summary && <div className="bg-muted text-muted-foreground rounded-md p-3 text-sm">{summary}</div>}
+                        </div>
+                        <SheetFooter className="border-t">
                             <Button type="submit" disabled={pending || submitDisabled}>
                                 {pending && <Loader2 className="animate-spin" />}
                                 {submitLabel}

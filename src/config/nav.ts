@@ -1,7 +1,15 @@
 import {
     Building2,
+    Contact,
+    Boxes,
+    ClipboardCheck,
+    Factory,
+    ShoppingCart,
+    Truck,
     LayoutDashboard,
     Palette,
+    Receipt,
+    Wallet,
     Settings,
     ShieldCheck,
     Users,
@@ -17,6 +25,8 @@ export type NavItem = {
     href: string
     icon: LucideIcon
     badge?: 'new' | 'pro'
+    /** Shows a live count next to the title, e.g. entries waiting for approval. */
+    count?: 'approvals' | 'cheques'
     /** Limits who sees this item; omit it to show it to everyone who sees the group. */
     roles?: RoleKey[]
     /**
@@ -47,6 +57,49 @@ export const appNav: NavGroup[] = [
                 href: '/dashboard',
                 icon: LayoutDashboard,
                 badge: 'new',
+            },
+            {
+                titleKey: 'suppliers',
+                href: '/suppliers',
+                icon: Truck,
+            },
+            {
+                titleKey: 'purchasing',
+                href: '/purchasing',
+                icon: ShoppingCart,
+            },
+            {
+                titleKey: 'production',
+                href: '/production',
+                icon: Factory,
+            },
+            {
+                titleKey: 'inventory',
+                href: '/inventory',
+                icon: Boxes,
+            },
+            {
+                titleKey: 'customers',
+                href: '/customers',
+                icon: Contact,
+            },
+            {
+                titleKey: 'sales',
+                href: '/sales',
+                icon: Receipt,
+                count: 'cheques',
+            },
+            {
+                titleKey: 'expenses',
+                href: '/expenses',
+                icon: Wallet,
+            },
+            {
+                titleKey: 'approvals',
+                href: '/approvals',
+                icon: ClipboardCheck,
+                count: 'approvals',
+                roles: ADMIN_VIEW_ROLES,
             },
             {
                 titleKey: 'settings',

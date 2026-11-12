@@ -188,3 +188,20 @@ html[lang='ur'] {
         line-height: 1.8;
     }
 }
+
+/*
+ * Printing a parchi or gate pass: only the slip is printed, clean black on white, whatever theme is on.
+ * The slip is rendered into #print-root (see components/sales/print-area.tsx) beside the page.
+ */
+@media print {
+    body > *:not(#print-root) {
+        display: none !important;
+    }
+    #print-root,
+    #print-root * {
+        color: black !important;
+        background: white !important;
+        border-color: black !important;
+        box-shadow: none !important;
+    }
+}
