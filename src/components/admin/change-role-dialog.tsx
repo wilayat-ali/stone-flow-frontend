@@ -14,20 +14,21 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { RoleKey } from '@/features/admin/roles'
 
 /** Pick a new role for one person. The parent supplies the target and the save call. */
 export function ChangeRoleDialog({
     name,
     currentRole,
     assignable,
+    roleLabel,
     saving,
     onSave,
     onClose,
 }: {
     name: string | null
     currentRole: string
-    assignable: RoleKey[]
+    assignable: string[]
+    roleLabel: (key: string) => string
     saving: boolean
     onSave: (roleKey: string) => void
     onClose: () => void
@@ -52,7 +53,7 @@ export function ChangeRoleDialog({
                         <SelectContent>
                             {assignable.map((key) => (
                                 <SelectItem key={key} value={key}>
-                                    {t(`roles.${key}`)}
+                                    {roleLabel(key)}
                                 </SelectItem>
                             ))}
                         </SelectContent>

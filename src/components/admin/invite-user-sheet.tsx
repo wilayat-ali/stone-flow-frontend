@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/sheet'
 import { SelectField, TextField } from '@/components/shared/form-fields'
 import { inviteMember, type InviteResult } from '@/features/admin/members'
-import type { RoleKey } from '@/features/admin/roles'
 import { useDirection } from '@/hooks/use-direction'
 import { errorCode } from '@/lib/client-api'
 
@@ -32,11 +31,13 @@ export function InviteUserSheet({
     open,
     onOpenChange,
     assignable,
+    roleLabel,
     onInvited,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    assignable: RoleKey[]
+    assignable: string[]
+    roleLabel: (key: string) => string
     onInvited: (result: InviteResult) => void
 }) {
     const t = useTranslations('admin.users')
@@ -97,7 +98,7 @@ export function InviteUserSheet({
                             control={form.control}
                             name="roleKey"
                             label={t('invite.role')}
-                            options={assignable.map((key) => ({ value: key, label: t(`roles.${key}`) }))}
+                            options={assignable.map((key) => ({ value: key, label: roleLabel(key) }))}
                         />
                         <p className="text-muted-foreground text-xs">{t('invite.hint')}</p>
                         <SheetFooter className="mt-auto px-0">

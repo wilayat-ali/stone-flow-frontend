@@ -13,7 +13,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard, StatCardGrid } from '@/components/shared/stat-card'
-import { canApprovePurchases, canEnterPurchases, canManageMembers } from '@/features/admin/roles'
+import { canApprovePurchases, canEnterPurchases, canViewInventoryValue } from '@/features/admin/roles'
 import { factoriesQueryKey, listFactories } from '@/features/factories'
 import { inventoryQueryKey, listInventory, type InventoryRow } from '@/features/inventory'
 import { pieceSizes, sizeLabel, sootTypes, sqFtOfSize } from '@/features/piece-sizes'
@@ -43,7 +43,7 @@ export function InventoryPage({ roleKey, userName }: { roleKey: string; userName
     const money = useMoney()
     const labels = useTableLabels()
     const itemText = useItemText()
-    const canViewValue = canManageMembers(roleKey)
+    const canViewValue = canViewInventoryValue(roleKey)
     const canApprove = canApprovePurchases(roleKey)
     const canEnter = canEnterPurchases(roleKey)
 

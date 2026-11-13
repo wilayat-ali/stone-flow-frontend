@@ -29,6 +29,7 @@ export function FormSheet<V extends FieldValues>({
     submitDisabled,
     summary,
     children,
+    className,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -43,12 +44,14 @@ export function FormSheet<V extends FieldValues>({
     /** Plain-language line shown above the buttons, e.g. what is about to happen. */
     summary?: ReactNode
     children: ReactNode
+    /** Sheet width, e.g. `sm:max-w-3xl` for a wide form. */
+    className?: string
 }) {
     const { isRtl } = useDirection()
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side={isRtl ? 'left' : 'right'}>
+            <SheetContent side={isRtl ? 'left' : 'right'} className={className}>
                 <SheetHeader>
                     <SheetTitle>{title}</SheetTitle>
                     <SheetDescription className={description ? undefined : 'sr-only'}>

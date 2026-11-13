@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard, StatCardGrid } from '@/components/shared/stat-card'
 import { StatusBadge } from '@/components/shared/status-badge'
-import { canManageMembers, canOperateProduction, canViewSettings } from '@/features/admin/roles'
+import { canOperateProduction, canReverseProduction, canViewSettings } from '@/features/admin/roles'
 import { customerKhataQueryKey, customersQueryKey } from '@/features/customers'
 import { balanceDueOf, cancelJob, cuttingJobsQueryKey, deliverJob } from '@/features/cutting-jobs'
 import { factoriesQueryKey, listFactories } from '@/features/factories'
@@ -467,7 +467,7 @@ export function ProductionPage({ roleKey, userName }: { roleKey: string; userNam
 
             {/* Without this a stopped server would read as "No records found". */}
             {tab === 'log' ? (
-                <EntryLog canReverse={canManageMembers(roleKey)} />
+                <EntryLog canReverse={canReverseProduction(roleKey)} />
             ) : tab === 'customers' ? (
                 <CustomersTab canOperate={canOperate} onReceive={(customerId) => setReceive({ customerId })} onReceivePayment={setReceivePay} />
             ) : list.isError ? (

@@ -1,6 +1,8 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, type CSSProperties, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { ShieldOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { usePathname } from '@/i18n/navigation'
 import {
@@ -9,7 +11,10 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
-import { appNav, isNavItemActive, superAdminNav } from '@/config/nav'
+import { EmptyState } from '@/components/shared/empty-state'
+import { appNav, isNavAllowed, isNavItemActive, superAdminNav } from '@/config/nav'
+import { getMyAccess, myAccessKey, setMyAccess, type MyAccess } from '@/features/admin/role-store'
+import { useRolesReady, useRolesVersion } from '@/features/admin/use-roles'
 import type { Workspace } from '@/features/workspace/data'
 import { AppSidebar } from './app-sidebar'
 import { LanguageSwitcher } from './language-switcher'
@@ -21,18 +26,32 @@ export type AppShellProps = {
     workspaces?: Workspace[]
     activeWorkspaceId?: string
     roleKey?: string
+    /** The signed-in person's permissions as the server read them; refreshed in the browser. */
+    access?: MyAccess
     children: ReactNode
 }
 
 /** Page shell from the shadcn dashboard-01 block. Shared by every authenticated area. */
-export function AppShell({ children, ...sidebarProps }: AppShellProps) {
+export function AppShell({ children, access, ...sidebarProps }: AppShellProps) {
     const t = useTranslations('nav')
+    const ta = useTranslations('access')
+    const rolesReady = useRolesReady()
+    const myAccess = useQuery({ queryKey: myAccessKey, queryFn: getMyAccess, initialData: access, enabled: !!access })
+    useEffect(() => {
+        // No answer from the backend: show the no-access notice instead of a blank page.
+        if (myAccess.data) setMyAccess(myAccess.data)
+        else if (sidebarProps.variant === 'app') setMyAccess({ roleKey: sidebarProps.roleKey ?? '', permissions: [] })
+    }, [myAccess.data, sidebarProps.variant, sidebarProps.roleKey])
+    useRolesVersion()
     const pathname = usePathname()
     const groups = sidebarProps.variant === 'app' ? appNav : superAdminNav
 
     const activeItem = groups
         .flatMap((group) => group.items)
         .find((item) => isNavItemActive(item, pathname))
+
+    // A page the role may not see (typed URL, or the role was just edited) shows a notice, not the page.
+    const allowed = sidebarProps.variant !== 'app' || isNavAllowed(activeItem?.permission, sidebarProps.roleKey)
 
     return (
         <SidebarProvider
@@ -65,7 +84,7 @@ export function AppShell({ children, ...sidebarProps }: AppShellProps) {
                     </div>
                 </header>
                 <div className="@container/main flex flex-1 flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
-                    {children}
+                    {!rolesReady && sidebarProps.variant === 'app' ? null : allowed ? children : <EmptyState icon={ShieldOff} title={ta('title')} description={ta('description')} />}
                 </div>
             </SidebarInset>
         </SidebarProvider>

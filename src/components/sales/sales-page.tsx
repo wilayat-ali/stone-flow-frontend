@@ -15,7 +15,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard, StatCardGrid } from '@/components/shared/stat-card'
-import { canCreateSuppliers, canManageSuppliers } from '@/features/admin/roles'
+import { canCreateSales, canManageSales } from '@/features/admin/roles'
 import { unclearedChequeTotal } from '@/features/customer-cheque-store'
 import { customerChequesQueryKey, dueCheques, listCustomerCheques } from '@/features/customer-payments'
 import { useRouter } from '@/i18n/navigation'
@@ -70,8 +70,8 @@ export function SalesPage({ roleKey, userName }: { roleKey: string; userName: st
     const labels = useTableLabels()
     const queryClient = useQueryClient()
     const errorMessage = useSalesErrorMessage()
-    const canAct = canCreateSuppliers(roleKey)
-    const canManage = canManageSuppliers(roleKey)
+    const canAct = canCreateSales(roleKey)
+    const canManage = canManageSales(roleKey)
     const router = useRouter()
     const [receive, setReceive] = useState<ReceivePreset | null>(null)
 

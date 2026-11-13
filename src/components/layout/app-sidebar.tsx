@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sidebar'
 import { appNav, superAdminNav, visibleNav } from '@/config/nav'
 import type { Workspace } from '@/features/workspace/data'
+import { useRolesVersion } from '@/features/admin/use-roles'
 import { useDirection } from '@/hooks/use-direction'
 import { NavMain } from './nav-main'
 import { UserMenu } from './user-menu'
@@ -40,6 +41,7 @@ export function AppSidebar({
     const t = useTranslations('nav')
     const tc = useTranslations('common')
     const { isRtl } = useDirection()
+    useRolesVersion()
 
     return (
         <Sidebar

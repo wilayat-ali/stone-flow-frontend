@@ -36,7 +36,8 @@ import {
     type Member,
     type MemberStatus,
 } from '@/features/admin/members'
-import { assignableRoles, canManageMembers, canManageTarget, roleKeys } from '@/features/admin/roles'
+import { assignableRoles, canManageMembers, canManageTarget } from '@/features/admin/roles'
+import { useRoleLabel, useRoles, useRolesVersion } from '@/features/admin/use-roles'
 import { useTableLabels } from '@/features/resource-labels'
 import { errorCode } from '@/lib/client-api'
 import { ChangeRoleDialog } from './change-role-dialog'
@@ -98,6 +99,9 @@ export function UsersPage({ roleKey }: { roleKey: string }) {
     const format = useFormatter()
     const queryClient = useQueryClient()
     const labels = useTableLabels()
+    useRolesVersion()
+    const roleLabel = useRoleLabel()
+    const allRoles = useRoles().data ?? []
     const canManage = canManageMembers(roleKey)
     const assignable = assignableRoles(roleKey)
 
@@ -370,9 +374,9 @@ export function UsersPage({ roleKey }: { roleKey: string }) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">{t('allRoles')}</SelectItem>
-                            {roleKeys.map((key) => (
+                            {allRoles.map(({ key }) => (
                                 <SelectItem key={key} value={key}>
-                                    {t(`roles.${key}`)}
+                                    {roleLabel(key)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -385,6 +389,7 @@ export function UsersPage({ roleKey }: { roleKey: string }) {
                     open={inviteOpen}
                     onOpenChange={setInviteOpen}
                     assignable={assignable}
+                    roleLabel={roleLabel}
                     onInvited={showInviteLink}
                 />
             )}
@@ -397,6 +402,7 @@ export function UsersPage({ roleKey }: { roleKey: string }) {
                     name={memberName(roleTarget) || roleTarget.email || roleTarget.phone}
                     currentRole={roleTarget.roleKey}
                     assignable={assignable}
+                    roleLabel={roleLabel}
                     saving={changeRole.isPending}
                     onSave={(role) => changeRole.mutate({ id: roleTarget.memberId, role })}
                     onClose={() => setRoleTarget(null)}

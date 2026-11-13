@@ -15,7 +15,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard, StatCardGrid } from '@/components/shared/stat-card'
-import { canCreateSuppliers, canManageMembers, canManageSuppliers } from '@/features/admin/roles'
+import { canCreateCustomers, canEditCustomerOpening, canEditCustomers } from '@/features/admin/roles'
 import {
     customersQueryKey,
     customerTypes,
@@ -43,9 +43,9 @@ export function CustomersPage({ roleKey, userName }: { roleKey: string; userName
     const format = useFormatter()
     const money = useMoney()
     const labels = useTableLabels()
-    const canCreate = canCreateSuppliers(roleKey)
-    const canEdit = canManageSuppliers(roleKey)
-    const canEditOpening = canManageMembers(roleKey)
+    const canCreate = canCreateCustomers(roleKey)
+    const canEdit = canEditCustomers(roleKey)
+    const canEditOpening = canEditCustomerOpening(roleKey)
 
     const [type, setType] = useState<CustomerType | typeof ALL>(ALL)
     const [balance, setBalance] = useState<BalanceFilter>(ALL)

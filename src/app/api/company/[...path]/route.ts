@@ -3,7 +3,7 @@ import { TOKEN_COOKIE } from '@/config/auth'
 import { api } from '@/lib/api'
 
 // Only these backend areas are reachable through this proxy.
-const ALLOWED = ['members', 'invitations', 'me']
+const ALLOWED = ['members', 'invitations', 'me', 'roles']
 
 type Context = { params: Promise<{ path: string[] }> }
 

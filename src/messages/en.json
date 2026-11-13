@@ -568,9 +568,6 @@
             "usersCount": "Users",
             "descriptionField": "Description",
             "role": "Role",
-            "system": "System",
-            "soonTitle": "Permissions are coming soon",
-            "soonDescription": "Every company has these five roles. Editing what each role can see and do will be added next.",
             "approval": {
                 "title": "Approval",
                 "description": "Munshi entries for purchases, payments and stock wait for approval before they count. Owner and Partner entries are always approved automatically.",
@@ -584,6 +581,126 @@
                 "manager": "Manages day-to-day work. Can see the people list.",
                 "munshi": "Records daily entries such as sales, stock and production.",
                 "viewer": "Can look at information but not change it."
+            },
+            "new": "New role",
+            "actions": {
+                "edit": "Edit",
+                "view": "View permissions",
+                "delete": "Delete",
+                "deleteBlocked": "Delete (move its users first)"
+            },
+            "form": {
+                "createTitle": "New role",
+                "editTitle": "Edit role",
+                "viewTitle": "{name}: permissions",
+                "description": "Choose what people with this role can see and do.",
+                "ownerNote": "Owner always has full access and cannot be changed.",
+                "name": "Role name",
+                "namePlaceholder": "e.g. Accountant",
+                "descriptionLabel": "Description",
+                "descriptionPlaceholder": "What is this role for?",
+                "copyFrom": "Start from an existing role",
+                "copyPlaceholder": "Choose a role to copy its permissions",
+                "permissions": "Permissions",
+                "selectAll": "All",
+                "summary": "{count} permissions selected.",
+                "create": "Create role",
+                "save": "Save changes",
+                "permissionsRequired": "Choose at least one permission."
+            },
+            "created": "Role created.",
+            "updated": "Role updated.",
+            "deleted": "Role deleted.",
+            "deleteTitle": "Delete {name}?",
+            "deleteDescription": "The role is removed for good. Nobody has it right now.",
+            "errors": {
+                "generic": "Something went wrong. Please try again.",
+                "NAME_REQUIRED": "Enter a role name.",
+                "NAME_TAKEN": "A role with this name already exists.",
+                "PERMISSIONS_REQUIRED": "Choose at least one permission.",
+                "ROLE_IN_USE": "People still have this role. Move them to another role first.",
+                "OWNER_LOCKED": "The Owner role cannot be changed or deleted.",
+                "NOT_FOUND": "That role no longer exists.",
+                "PERMISSION_NOT_HELD": "You can only give permissions that you have yourself.",
+                "FORBIDDEN": "You are not allowed to change this role.",
+                "TOO_LONG": "The name or description is too long.",
+                "INVALID_PERMISSION": "One of the permissions is not valid."
+            },
+            "permissions": {
+                "dashboard": {
+                    "title": "Dashboard",
+                    "view": "See the dashboard"
+                },
+                "suppliers": {
+                    "title": "Suppliers",
+                    "view": "See suppliers",
+                    "create": "Add suppliers",
+                    "manage": "Edit suppliers, approve and cancel"
+                },
+                "purchasing": {
+                    "title": "Purchasing",
+                    "view": "See purchases",
+                    "create": "Enter trucks and payments",
+                    "approve": "Approve, reject, edit and cancel"
+                },
+                "production": {
+                    "title": "Production",
+                    "view": "See production",
+                    "operate": "Send trucks to machines and finish them",
+                    "reverse": "Reverse entries in the log"
+                },
+                "inventory": {
+                    "title": "Inventory",
+                    "view": "See stock",
+                    "viewValue": "See the value of stock"
+                },
+                "customers": {
+                    "title": "Customers",
+                    "view": "See customers",
+                    "create": "Add customers",
+                    "edit": "Edit customers",
+                    "editOpening": "Edit opening balances"
+                },
+                "sales": {
+                    "title": "Sales",
+                    "view": "See sales",
+                    "create": "Record sales and payments",
+                    "manage": "Approve, edit and cancel"
+                },
+                "expenses": {
+                    "title": "Expenses and workers",
+                    "view": "See expenses and workers",
+                    "create": "Enter expenses and worker payments",
+                    "manage": "Approve, pay bills, give Munshi cash, manage workers and loans"
+                },
+                "monthEnd": {
+                    "title": "Month-end",
+                    "close": "Close a month",
+                    "reopen": "Re-open a closed month"
+                },
+                "approvals": {
+                    "title": "Approvals",
+                    "view": "See and decide approvals",
+                    "configure": "Turn Munshi approval on or off"
+                },
+                "settings": {
+                    "title": "Settings",
+                    "view": "Open company settings (bank and cash)"
+                },
+                "users": {
+                    "title": "People",
+                    "view": "See people",
+                    "manage": "Invite people, change roles, deactivate"
+                },
+                "roles": {
+                    "title": "Roles",
+                    "view": "See roles",
+                    "manage": "Create, edit and delete roles"
+                },
+                "branding": {
+                    "title": "Branding",
+                    "manage": "Change the company theme"
+                }
             }
         },
         "branding": {
@@ -2635,5 +2752,9 @@
                 "submit": "Re-open month"
             }
         }
+    },
+    "access": {
+        "title": "You do not have access to this page",
+        "description": "Ask the owner to change your role if you need it."
     }
 }
