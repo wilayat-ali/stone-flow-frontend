@@ -1,3 +1,4 @@
+import { listWorkerRates } from './worker-rates'
 import { ApiError } from '@/lib/client-api'
 import { assertMonthOpen } from './month-store'
 import { allWorkEntries, setRegisterEntry } from './work-entries'
@@ -25,7 +26,7 @@ export type RegisterSheet = { date: string; rows: RegisterRow[] }
 
 /** The sq.ft workers' grid for a day: what was typed, and what production already credited. */
 export const getWorkRegister = async (date: string): Promise<RegisterSheet> => {
-    await delay(250)
+    await Promise.all([delay(250), listWorkerRates()])
     const entries = allWorkEntries().filter((e) => e.date === date && e.unit === 'sqft')
     const rows = allWorkers()
         .filter((w) => w.isActive && w.payType === 'sqft')
@@ -65,7 +66,7 @@ const post = (date: string, workerId: string, feet: number, by: string) => {
 
 /** Save the grid: one entry per worker for the day (feet cleared to 0 takes his entry back). */
 export const saveWorkRegister = async (date: string, rows: { workerId: string; feet: number }[], by: string): Promise<void> => {
-    await delay()
+    await Promise.all([delay(), listWorkerRates()])
     if (date > today()) throw new ApiError(400, { code: 'FUTURE_DATE' })
     assertMonthOpen(date)
     if (rows.some((r) => !(r.feet >= 0))) throw new ApiError(400, { code: 'INVALID_AMOUNT' })

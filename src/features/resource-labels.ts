@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import type { DataTableLabels } from '@/components/shared/data-table'
 import type { ResourceLabels } from '@/components/shared/resource-page'
+import { errorCode } from '@/lib/client-api'
 
 // Scoped translator for a namespace that follows the shared resource shape.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,6 +18,7 @@ export type ScopedT = (key: any, values?: any) => string
 export function useResourceLabels(t: ScopedT): ResourceLabels {
     const tc = useTranslations('common')
     const tt = useTranslations('table')
+    const te = useTranslations('settings.errors')
 
     return useMemo(
         () => ({
@@ -36,6 +38,10 @@ export function useResourceLabels(t: ScopedT): ResourceLabels {
             cancel: tc('cancel'),
             actions: tc('actions'),
             openMenu: tc('openMenu'),
+            errorMessage: (error: unknown) => {
+                const code = errorCode(error)
+                return code && te.has(code as never) ? te(code as never) : te('generic')
+            },
             search: tc('search'),
             noData: tt('noData'),
             noDataDescription: tt('noDataDescription'),
@@ -47,7 +53,7 @@ export function useResourceLabels(t: ScopedT): ResourceLabels {
             page: (page: number, total: number) => tt('page', { page, total }),
             rows: (count: number) => tt('rowsCount', { count }),
         }),
-        [t, tc, tt]
+        [t, tc, tt, te]
     )
 }
 

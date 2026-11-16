@@ -279,6 +279,15 @@
             "deactivate": "Deactivate",
             "fieldName": "Width name",
             "fieldNamePlaceholder": "e.g. 2 inch"
+        },
+        "errors": {
+            "generic": "Something went wrong. Please try again.",
+            "DUPLICATE_NAME": "Something with this name already exists.",
+            "FACTORY_HAS_MACHINES": "This factory still has machines in use. Deactivate or move them first.",
+            "FACTORY_INACTIVE": "The machine’s factory is deactivated. Bring the factory back first.",
+            "invalid": "One of the values is not valid.",
+            "notFound": "This item no longer exists.",
+            "Forbidden": "You are not allowed to change this."
         }
     },
     "table": {
@@ -685,7 +694,7 @@
                 },
                 "settings": {
                     "title": "Settings",
-                    "view": "Open company settings (bank and cash)"
+                    "view": "Open and change company settings (bank, cash and the master lists)"
                 },
                 "users": {
                     "title": "People",
@@ -1102,7 +1111,21 @@
             "CANCEL_AFTER_CUTTING": "Cutting has started, so this truck cannot be cancelled.",
             "ALREADY_DECIDED": "Someone already decided this. Refresh the list.",
             "notFound": "That purchase could not be found. Refresh and try again.",
-            "DUPLICATE_CHEQUE": "This cheque number is already used for that account."
+            "DUPLICATE_CHEQUE": "This cheque number is already used for that account.",
+            "FACTORY_LOCKED": "This truck already has a mark from its factory, so the factory cannot be changed.",
+            "CANNOT_DECIDE_OWN_ENTRY": "You cannot decide your own entry. Ask someone else.",
+            "APPROVAL_ALREADY_DECIDED": "Someone already decided this. Refresh the list.",
+            "NOT_AN_APPROVER": "You are not allowed to decide trucks.",
+            "futureDate": "The date cannot be in the future.",
+            "invalid": "Choose an active supplier and factory.",
+            "required": "A reason is required.",
+            "Forbidden": "You are not allowed to do this.",
+            "PAYMENT_PENDING": "This cheque’s payment is still waiting for approval. Confirm or reject the payment first.",
+            "NOT_REPLACEABLE": "Only a bounced or returned cheque can be replaced, and only once.",
+            "ACCOUNT_INACTIVE": "This account is deactivated. Choose another one.",
+            "BANK_ACCOUNT_NOT_ALLOWED": "You can only pay from cash. Ask the owner to pay from a bank account.",
+            "wrongKind": "Choose a cash account for cash, and a bank account for a transfer or cheque.",
+            "beforeIssued": "The date cannot be before the cheque was given."
         },
         "tabs": {
             "purchases": "Purchases",

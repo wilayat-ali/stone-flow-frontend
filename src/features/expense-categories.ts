@@ -1,4 +1,4 @@
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { request } from '@/lib/client-api'
 
 export type ExpenseCategory = {
     id: string
@@ -8,48 +8,19 @@ export type ExpenseCategory = {
 
 export const expenseCategoriesQueryKey = 'expense-categories'
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-let categories: ExpenseCategory[] = [
-    ['machine-parts', 'Machine & spare parts'],
-    ['maintenance', 'Maintenance'],
-    ['electrical', 'Electrical maintenance'],
-    ['electricity', 'Electricity bill'],
-    ['water', 'Water tanker'],
-    ['drain', 'Drain powder & cleaning'],
-    ['lunch-tea', 'Lunch & tea'],
-    ['guests', 'Guests'],
-    ['diesel', 'Diesel & transport'],
-    ['other', 'Other'],
-].map(([id, name]) => ({ id, name, isActive: true }))
+const base = '/api/settings/expense-categories'
 
 /** Nothing is ever hard-deleted, so a deactivated category is simply left out of the list. */
-export const listExpenseCategories = async (): Promise<ExpenseCategory[]> => {
-    await delay()
-    return categories.filter((c) => c.isActive)
-}
+export const listExpenseCategories = () => request<ExpenseCategory[]>(base)
 
 export type ExpenseCategoryInput = { name: string }
 
-export const createExpenseCategory = async (
-    input: ExpenseCategoryInput
-): Promise<ExpenseCategory> => {
-    await delay()
-    const category: ExpenseCategory = { ...input, id: crypto.randomUUID(), isActive: true }
-    categories = [...categories, category]
-    return category
-}
+export const createExpenseCategory = (input: ExpenseCategoryInput) => request<ExpenseCategory>(base, { body: input })
 
-export const updateExpenseCategory = async (
-    id: string,
-    input: ExpenseCategoryInput
-): Promise<ExpenseCategory> => {
-    await delay()
-    categories = categories.map((c) => (c.id === id ? { ...c, ...input } : c))
-    return categories.find((c) => c.id === id) as ExpenseCategory
-}
+export const updateExpenseCategory = (id: string, input: ExpenseCategoryInput) =>
+    request<ExpenseCategory>(`${base}/${id}`, { method: 'PATCH', body: input })
 
 /** Categories are never deleted — this only hides the row by setting `isActive: false`. */
 export const deactivateExpenseCategory = async (id: string): Promise<void> => {
-    await delay()
-    categories = categories.map((c) => (c.id === id ? { ...c, isActive: false } : c))
+    await request<ExpenseCategory>(`${base}/${id}`, { method: 'PATCH', body: { isActive: false } })
 }

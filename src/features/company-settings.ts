@@ -1,4 +1,4 @@
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { request } from '@/lib/client-api'
 
 export type CompanySettings = {
     /**
@@ -10,18 +10,9 @@ export type CompanySettings = {
 
 export const companySettingsKey = ['company-settings'] as const
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-let settings: CompanySettings = { approvalRequired: true }
+const base = '/api/company/settings'
 
-export const getCompanySettings = async (): Promise<CompanySettings> => {
-    await delay()
-    return settings
-}
+export const getCompanySettings = () => request<CompanySettings>(base)
 
-export const updateCompanySettings = async (
-    values: Partial<CompanySettings>
-): Promise<CompanySettings> => {
-    await delay()
-    settings = { ...settings, ...values }
-    return settings
-}
+export const updateCompanySettings = (values: Partial<CompanySettings>) =>
+    request<CompanySettings>(base, { method: 'PATCH', body: values })

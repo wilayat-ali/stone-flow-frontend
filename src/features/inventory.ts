@@ -1,5 +1,5 @@
 import { listEntryRecords, sqFtOf, stockRows, itemKeyOf, type StockItem } from './production-entries'
-import { allPurchases } from './purchases'
+import { allPurchases, listPurchases } from './purchases'
 import { reservedFor } from './sales'
 import { workEntriesFor } from './work-entries'
 
@@ -82,6 +82,7 @@ const costOf = (material: string): Cost => {
 }
 
 export const listInventory = async (): Promise<InventoryRow[]> => {
+    await listPurchases()
     await delay()
     const costs = new Map<string, Cost>()
     const costFor = (material: string) => {

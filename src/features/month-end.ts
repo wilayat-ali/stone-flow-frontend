@@ -1,3 +1,4 @@
+import { listWorkerRates } from './worker-rates'
 import { ApiError } from '@/lib/client-api'
 import { absentDays } from './attendance'
 import { instalmentFor } from './loans'
@@ -115,6 +116,7 @@ const sheetOf = (month: string): MonthSheet => {
 }
 
 export const getMonthSheet = async (month: string): Promise<MonthSheet> => {
+    await listWorkerRates()
     await delay()
     return sheetOf(month)
 }
@@ -147,6 +149,7 @@ const postingsOf = (month: string): ClosedPosting[] =>
  * refused, so a repeated request cannot post twice.
  */
 export const closeMonth = async (month: string, by: string): Promise<MonthClose> => {
+    await listWorkerRates()
     await delay()
     if (closedRecord(month)) throw new ApiError(409, { code: 'ALREADY_CLOSED' })
     const postings = postingsOf(month)

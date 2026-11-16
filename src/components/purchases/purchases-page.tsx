@@ -60,7 +60,7 @@ const thisMonth = () => new Date().toISOString().slice(0, 7)
  * Trucks bought from the kanta purchi: enter, approve, mark. Cutting is Production's job (05a), so
  * this page has no Send or Finish buttons. Payments, cheques and the khata tabs come with 04c.
  */
-export function PurchasesPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function PurchasesPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('purchases')
     const tc = useTranslations('common')
     const format = useFormatter()
@@ -108,7 +108,7 @@ export function PurchasesPage({ roleKey, userName }: { roleKey: string; userName
     }
 
     const approve = useMutation({
-        mutationFn: (purchase: Purchase) => approvePurchase(purchase.id, userName),
+        mutationFn: (purchase: Purchase) => approvePurchase(purchase.id),
         onSuccess: (purchase) => {
             toast.success(t('approved'))
             refresh()
@@ -119,7 +119,7 @@ export function PurchasesPage({ roleKey, userName }: { roleKey: string; userName
 
     const reject = useMutation({
         mutationFn: ({ purchase, reason }: { purchase: Purchase; reason: string }) =>
-            rejectPurchase(purchase.id, reason, userName),
+            rejectPurchase(purchase.id, reason),
         onSuccess: () => {
             toast.success(t('rejected'))
             setRejecting(null)
@@ -436,8 +436,6 @@ export function PurchasesPage({ roleKey, userName }: { roleKey: string; userName
                 open={sheet !== null}
                 onOpenChange={(open) => !open && setSheet(null)}
                 purchase={sheet === 'edit' ? (selected ?? undefined) : undefined}
-                roleKey={roleKey}
-                userName={userName}
                 onSaved={setMarked}
             />
 
@@ -446,8 +444,6 @@ export function PurchasesPage({ roleKey, userName }: { roleKey: string; userName
             <PaymentSheet
                 open={payment !== null}
                 onOpenChange={(open) => !open && setPayment(null)}
-                roleKey={roleKey}
-                userName={userName}
                 preset={payment ?? undefined}
             />
 

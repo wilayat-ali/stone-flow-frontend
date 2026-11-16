@@ -1,4 +1,4 @@
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { request } from '@/lib/client-api'
 
 export type SootSize = {
     id: string
@@ -8,36 +8,19 @@ export type SootSize = {
 
 export const sootSizesQueryKey = 'soot-sizes'
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-let sizes: SootSize[] = ['14 soot', '6 soot', '4 soot'].map((name) => ({
-    id: crypto.randomUUID(),
-    name,
-    isActive: true,
-}))
+const base = '/api/settings/soot-sizes'
 
 /** Nothing is ever hard-deleted, so a deactivated size is simply left out of the list. */
-export const listSootSizes = async (): Promise<SootSize[]> => {
-    await delay()
-    return sizes.filter((s) => s.isActive)
-}
+export const listSootSizes = () => request<SootSize[]>(base)
 
 export type SootSizeInput = { name: string }
 
-export const createSootSize = async (input: SootSizeInput): Promise<SootSize> => {
-    await delay()
-    const size: SootSize = { ...input, id: crypto.randomUUID(), isActive: true }
-    sizes = [...sizes, size]
-    return size
-}
+export const createSootSize = (input: SootSizeInput) => request<SootSize>(base, { body: input })
 
-export const updateSootSize = async (id: string, input: SootSizeInput): Promise<SootSize> => {
-    await delay()
-    sizes = sizes.map((s) => (s.id === id ? { ...s, ...input } : s))
-    return sizes.find((s) => s.id === id) as SootSize
-}
+export const updateSootSize = (id: string, input: SootSizeInput) =>
+    request<SootSize>(`${base}/${id}`, { method: 'PATCH', body: input })
 
 /** Sizes are never deleted — this only hides the row by setting `isActive: false`. */
 export const deactivateSootSize = async (id: string): Promise<void> => {
-    await delay()
-    sizes = sizes.map((s) => (s.id === id ? { ...s, isActive: false } : s))
+    await request<SootSize>(`${base}/${id}`, { method: 'PATCH', body: { isActive: false } })
 }

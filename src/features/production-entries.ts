@@ -1,6 +1,6 @@
 import { ApiError } from '@/lib/client-api'
 import { sqFtOfSize } from './piece-sizes'
-import { allPurchases } from './purchases'
+import { allPurchases, listPurchases } from './purchases'
 import { listWorkerRates } from './worker-rates'
 import { postWorkEntry, reverseWorkEntries } from './work-entries'
 import { workerById } from './workers'
@@ -259,6 +259,7 @@ export const postEntry = async (input: EntryInput, by: string): Promise<Producti
     if (input.type !== 'cut' && inputs.length === 0) throw new ApiError(400, { code: 'NO_INPUT' })
 
     if (input.type === 'cut') {
+        await listPurchases()
         const truck = allPurchases().find((p) => p.id === input.purchaseId)
         if (!truck || truck.status !== 'cut') throw new ApiError(409, { code: 'TRUCK_NOT_CUT' })
         if (isCounted(truck.id)) throw new ApiError(409, { code: 'ALREADY_COUNTED' })

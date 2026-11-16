@@ -15,7 +15,7 @@ import {
 
 /**
  * Company-wide approval policy: on by default, it is read here and enforced wherever
- * purchases, payments and stock entries are recorded (those modules are not built yet).
+ * purchases, payments and stock entries are recorded.
  */
 export function ApprovalSettingCard({ canManage }: { canManage: boolean }) {
     const t = useTranslations('admin.roles.approval')

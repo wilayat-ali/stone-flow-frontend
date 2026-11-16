@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { DateField, SelectField, TextField } from '@/components/shared/form-fields'
 import { FormSheet } from '@/components/shared/form-sheet'
 import { accountsKey, listAccounts } from '@/features/bank-cash/api'
-import { companySettingsKey, getCompanySettings } from '@/features/company-settings'
 import { listPurchases, purchasesQueryKey } from '@/features/purchases'
 import {
     chequesQueryKey,
@@ -57,14 +56,10 @@ const emptyValues = (preset: PaymentPreset): PaymentValues => ({
 export function PaymentSheet({
     open,
     onOpenChange,
-    roleKey,
-    userName,
     preset = NO_PRESET,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    roleKey: string
-    userName: string
     preset?: PaymentPreset
 }) {
     const t = useTranslations('purchases')
@@ -81,7 +76,6 @@ export function PaymentSheet({
     const suppliers = useQuery({ queryKey: [suppliersQueryKey, {}], queryFn: () => listSuppliers(), enabled: open })
     const accounts = useQuery({ queryKey: accountsKey, queryFn: listAccounts, enabled: open })
     const purchases = useQuery({ queryKey: [purchasesQueryKey, 'all'], queryFn: () => listPurchases(), enabled: open })
-    const settings = useQuery({ queryKey: companySettingsKey, queryFn: getCompanySettings, enabled: open })
 
     useEffect(() => {
         if (!open) return
@@ -136,8 +130,7 @@ export function PaymentSheet({
                     forPurchaseIds: values.applyTo === 'pick' ? values.picked : [],
                     note: preset.replaces ? t('pay.replacementNote', { no: preset.replaces.no }) : values.note,
                     replacesChequeId: preset.replaces?.id,
-                },
-                { pending: roleKey === 'munshi' && (settings.data?.approvalRequired ?? true), by: userName }
+                }
             ),
         onSuccess: (payment) => {
             toast.success(payment.status === 'pending' ? t('pay.savedPending') : t('pay.saved'))

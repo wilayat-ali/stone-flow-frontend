@@ -1,4 +1,4 @@
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { request } from '@/lib/client-api'
 
 export type CounterWidth = {
     id: string
@@ -8,39 +8,19 @@ export type CounterWidth = {
 
 export const counterWidthsQueryKey = 'counter-widths'
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-let widths: CounterWidth[] = ['2 inch', '1.5 inch', '1.25 inch'].map((name) => ({
-    id: crypto.randomUUID(),
-    name,
-    isActive: true,
-}))
+const base = '/api/settings/counter-widths'
 
 /** Nothing is ever hard-deleted, so a deactivated width is simply left out of the list. */
-export const listCounterWidths = async (): Promise<CounterWidth[]> => {
-    await delay()
-    return widths.filter((w) => w.isActive)
-}
+export const listCounterWidths = () => request<CounterWidth[]>(base)
 
 export type CounterWidthInput = { name: string }
 
-export const createCounterWidth = async (input: CounterWidthInput): Promise<CounterWidth> => {
-    await delay()
-    const width: CounterWidth = { ...input, id: crypto.randomUUID(), isActive: true }
-    widths = [...widths, width]
-    return width
-}
+export const createCounterWidth = (input: CounterWidthInput) => request<CounterWidth>(base, { body: input })
 
-export const updateCounterWidth = async (
-    id: string,
-    input: CounterWidthInput
-): Promise<CounterWidth> => {
-    await delay()
-    widths = widths.map((w) => (w.id === id ? { ...w, ...input } : w))
-    return widths.find((w) => w.id === id) as CounterWidth
-}
+export const updateCounterWidth = (id: string, input: CounterWidthInput) =>
+    request<CounterWidth>(`${base}/${id}`, { method: 'PATCH', body: input })
 
 /** Widths are never deleted — this only hides the row by setting `isActive: false`. */
 export const deactivateCounterWidth = async (id: string): Promise<void> => {
-    await delay()
-    widths = widths.map((w) => (w.id === id ? { ...w, isActive: false } : w))
+    await request<CounterWidth>(`${base}/${id}`, { method: 'PATCH', body: { isActive: false } })
 }

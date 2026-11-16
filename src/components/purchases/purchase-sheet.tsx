@@ -10,7 +10,6 @@ import { DateField, SelectField, TextField, TextareaField } from '@/components/s
 import { FormSheet } from '@/components/shared/form-sheet'
 import { accountsKey, listAccounts } from '@/features/bank-cash/api'
 import { chequesQueryKey, createPayment, paymentMethods, paymentsQueryKey } from '@/features/supplier-payments'
-import { companySettingsKey, getCompanySettings } from '@/features/company-settings'
 import { factoriesQueryKey, listFactories } from '@/features/factories'
 import {
     createPurchase,
@@ -78,15 +77,11 @@ export function PurchaseSheet({
     open,
     onOpenChange,
     purchase,
-    roleKey,
-    userName,
     onSaved,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     purchase?: Purchase
-    roleKey: string
-    userName: string
     /** Called with the new purchase, so the page can show its mark. */
     onSaved: (purchase: Purchase | null) => void
 }) {
@@ -106,7 +101,6 @@ export function PurchaseSheet({
     })
     const factories = useQuery({ queryKey: [factoriesQueryKey], queryFn: listFactories, enabled: open })
     const accounts = useQuery({ queryKey: accountsKey, queryFn: listAccounts, enabled: open && !purchase })
-    const settings = useQuery({ queryKey: companySettingsKey, queryFn: getCompanySettings, enabled: open })
 
     useEffect(() => {
         if (!open) return
@@ -151,12 +145,10 @@ export function PurchaseSheet({
                 factoryName: factories.data?.find((f) => f.id === values.factoryId)?.name ?? '',
                 note: values.note,
             }
-            // A munshi's entry waits for the owner when approval is on.
-            const pending = roleKey === 'munshi' && (settings.data?.approvalRequired ?? true)
             if (purchase) return updatePurchase(purchase.id, input)
-            const created = await createPurchase(input, { pending, by: userName })
+            const created = await createPurchase(input)
             if (values.paidMethod !== 'none') {
-                // Linked to this truck; a munshi's payment waits for the owner like the purchase does.
+                // Linked to this truck; the backend makes a munshi's payment wait for the owner like the purchase.
                 await createPayment(
                     {
                         date: values.date,
@@ -171,8 +163,7 @@ export function PurchaseSheet({
                         chequeDate: values.chequeDate,
                         forPurchaseIds: [created.id],
                         note: t('paidNow.note'),
-                    },
-                    { pending, by: userName }
+                    }
                 )
             }
             return created

@@ -1,7 +1,4 @@
-import { ApiError } from '@/lib/client-api'
-import { postSupplierEntry } from './suppliers'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { ApiError, request } from '@/lib/client-api'
 
 /** `cutting` and `cut` are set by Production (05a); this module only reads them. */
 export const purchaseStatuses = ['pending', 'in_stock', 'cutting', 'cut', 'rejected', 'cancelled'] as const
@@ -71,6 +68,8 @@ export type PurchaseFilters = {
 
 export const purchasesQueryKey = 'purchases'
 
+const base = '/api/purchases'
+
 // Stand-in for the material list in Settings.
 export const materials = [
     'Ziarat White (rough)',
@@ -90,102 +89,36 @@ const today = () => new Date().toISOString().slice(0, 10)
 export const daysSince = (date: string) =>
     Math.max(0, Math.round((new Date(today()).getTime() - new Date(date).getTime()) / 86_400_000))
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-// The mark sequence continues forever per factory and never resets.
-const counters = new Map<string, number>([
-    ['main', 19],
-    ['north-yard', 7],
-])
+// Production (still a mock) moves a truck through cutting. The backend only knows approved, in-stock trucks,
+// so what Production changes is kept here on top of the real rows until Production is integrated.
+const cuttingOverlay = new Map<string, Partial<Purchase>>()
 
-const seed = (
-    id: string,
-    date: string,
-    supplierId: string,
-    supplierName: string,
-    material: string,
-    purchiNo: string,
-    truckNo: string,
-    tons: number,
-    ratePerTon: number,
-    discount: number,
-    stones: number,
-    factoryId: string,
-    factoryName: string,
-    markSeq: number | null,
-    status: PurchaseStatus,
-    createdBy = 'Wilayat Ali'
-): Purchase => ({
-    id,
-    date,
-    supplierId,
-    supplierName,
-    material,
-    purchiNo,
-    truckNo,
-    tons,
-    ratePerTon,
-    discount,
-    total: totalOf(tons, ratePerTon, discount),
-    stones,
-    factoryId,
-    factoryName,
-    markSeq,
-    mark: markSeq ? `${markSeq}/${stones}` : null,
-    status,
-    note: '',
-    reason: null,
-    createdBy,
-    approvedBy: status === 'pending' ? null : 'Wilayat Ali',
-    createdAt: `${date}T09:00:00.000Z`,
-    ...noCutting,
-})
+/** The last list the backend gave, with Production's changes on top, for the mock modules that read it at once. */
+let known: Purchase[] = []
 
-let purchases: Purchase[] = [
-    seed('p1', '2026-09-12', 's1', 'Haji Gul Khan', 'Ziarat White (rough)', '7720', 'TKR-219', 21.4, 6800, 520, 3, 'main', 'Saadat Marble — Main Factory', 16, 'cut'),
-    seed('p2', '2026-09-24', 's3', 'Sher Zaman', 'Jet Black (rough)', '1190', 'PSA-4471', 24.6, 9000, 1400, 4, 'main', 'Saadat Marble — Main Factory', 17, 'cutting'),
-    seed('p3', '2026-09-30', 's1', 'Haji Gul Khan', 'Ziarat White (rough)', '7791', 'TKR-305', 22, 7000, 0, 3, 'main', 'Saadat Marble — Main Factory', 18, 'in_stock'),
-    seed('p4', '2026-10-05', 's3', 'Sher Zaman', 'Jet Black (rough)', '1204', 'PSA-5102', 15.2, 9000, 800, 2, 'north-yard', 'North Yard', 7, 'in_stock'),
-    seed('p5', '2026-10-08', 's1', 'Haji Gul Khan', 'Ziarat White (rough)', '7810', 'TKR-341', 23.1, 7000, 1700, 4, 'main', 'Saadat Marble — Main Factory', 19, 'in_stock'),
-    seed('p7', '2026-10-06', 's2', 'Arshad Khan', 'Sunny Grey (rough)', '3342', 'LES-912', 20.5, 6500, 250, 3, 'khan-cutting', 'Khan Cutting Works', null, 'in_stock'),
-    seed('p6', '2026-10-10', 's2', 'Arshad Khan', 'Sunny Grey (rough)', '3360', 'LES-947', 19.8, 6600, 680, 3, 'main', 'Saadat Marble — Main Factory', null, 'pending', 'Rashid Khan'),
-]
+const withOverlay = (purchase: Purchase): Purchase => ({ ...purchase, ...cuttingOverlay.get(purchase.id) })
 
-/** Synchronous view for the payments and production mocks. */
-export const allPurchases = () => purchases
+const remember = (purchase: Purchase) => {
+    const next = withOverlay(purchase)
+    known = known.some((p) => p.id === next.id) ? known.map((p) => (p.id === next.id ? next : p)) : [...known, next]
+    return next
+}
+
+/** Synchronous view for the payments and production mocks (the last list loaded). */
+export const allPurchases = () => known
 
 /** Production (05a) moves a truck through cutting; it never edits the purchase itself. */
 export const patchPurchase = (id: string, patch: Partial<Purchase>): Purchase => {
-    const current = purchases.find((p) => p.id === id)
+    const current = known.find((p) => p.id === id)
     if (!current) throw new ApiError(404, { code: 'notFound' })
-    const next = { ...current, ...patch }
-    purchases = purchases.map((p) => (p.id === id ? next : p))
-    return next
-}
-
-// Trucks the seed has already sent to a machine.
-purchases = purchases.map((p) =>
-    p.id === 'p1'
-        ? { ...p, machineId: 'vertical-1', machineName: 'Vertical Cutter 1', thekadarId: 'w-rashid', thekadarName: 'Rashid Khan', cutStart: '2026-09-15', cutEnd: '2026-09-22', cutRatePerTon: 1100 }
-        : p.id === 'p2'
-          ? { ...p, machineId: 'gangsaw-1', machineName: 'Gang Saw 1', thekadarId: 'w-shahid', thekadarName: 'Shahid Pervez', cutStart: '2026-10-06', cutEnd: null, cutRatePerTon: null }
-          : p
-)
-
-const find = (id: string) => {
-    const purchase = purchases.find((p) => p.id === id)
-    if (!purchase) throw new ApiError(404, { code: 'notFound' })
-    return purchase
-}
-
-const replace = (next: Purchase) => {
-    purchases = purchases.map((p) => (p.id === next.id ? next : p))
-    return next
+    cuttingOverlay.set(id, { ...cuttingOverlay.get(id), ...patch })
+    return remember(current)
 }
 
 /** Newest first; oldest first when looking at trucks waiting in the yard. */
 export const listPurchases = async (filters: PurchaseFilters = {}): Promise<Purchase[]> => {
-    await delay()
-    const rows = purchases.filter(
+    known = (await request<Purchase[]>(base)).map(withOverlay)
+    const rows = known.filter(
         (p) =>
             (!filters.status || p.status === filters.status) &&
             (!filters.supplierId || p.supplierId === filters.supplierId) &&
@@ -193,9 +126,7 @@ export const listPurchases = async (filters: PurchaseFilters = {}): Promise<Purc
             (!filters.ageDays || (p.status === 'in_stock' && daysSince(p.date) >= filters.ageDays))
     )
     const oldestFirst = filters.status === 'in_stock' || !!filters.ageDays
-    return rows.sort(
-        (a, b) => (oldestFirst ? 1 : -1) * (a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
-    )
+    return rows.sort((a, b) => (oldestFirst ? 1 : -1) * (a.date.localeCompare(b.date) || a.id.localeCompare(b.id)))
 }
 
 export type PurchaseInput = {
@@ -214,109 +145,41 @@ export type PurchaseInput = {
     note: string
 }
 
-const assertNotDuplicate = (input: PurchaseInput, exceptId?: string) => {
-    const same = purchases.some(
-        (p) =>
-            p.id !== exceptId &&
-            p.supplierId === input.supplierId &&
-            p.purchiNo === input.purchiNo &&
-            !['rejected', 'cancelled'].includes(p.status)
-    )
-    if (same) throw new ApiError(409, { code: 'DUPLICATE_PURCHI' })
-}
-
-/** Posts the supplier charge and takes the next mark; only ever called when an entry is approved. */
-const approveNow = (purchase: Purchase, approvedBy: string): Purchase => {
-    const seq = (counters.get(purchase.factoryId) ?? 0) + 1
-    counters.set(purchase.factoryId, seq)
-    postSupplierEntry({
-        supplierId: purchase.supplierId,
-        date: purchase.date,
-        kind: 'charge',
-        amount: purchase.total,
-        detail: `Truck ${seq}/${purchase.stones} · purchi ${purchase.purchiNo}`,
-    })
-    return { ...purchase, markSeq: seq, mark: `${seq}/${purchase.stones}`, status: 'in_stock', approvedBy }
-}
+/** What the backend takes: names and totals are worked out there, never sent. */
+const toBody = (input: PurchaseInput) => ({
+    date: input.date,
+    supplierId: input.supplierId,
+    material: input.material,
+    purchiNo: input.purchiNo,
+    truckNo: input.truckNo,
+    tons: input.tons,
+    ratePerTon: input.ratePerTon,
+    discount: input.discount,
+    stones: input.stones,
+    factoryId: input.factoryId,
+    note: input.note,
+})
 
 /**
- * A munshi's purchase waits as `pending` (no charge, no mark) when approval is on; anyone else's
- * is approved straight away.
+ * A munshi's purchase waits as `pending` (no charge, no mark) while approval is on; anyone else's is approved
+ * straight away. The backend decides which, and posts the supplier charge.
  */
-export const createPurchase = async (
-    input: PurchaseInput,
-    options: { pending: boolean; by: string }
-): Promise<Purchase> => {
-    await delay()
-    assertNotDuplicate(input)
-    const purchase: Purchase = {
-        ...input,
-        id: crypto.randomUUID(),
-        total: totalOf(input.tons, input.ratePerTon, input.discount),
-        markSeq: null,
-        mark: null,
-        status: 'pending',
-        reason: null,
-        createdBy: options.by,
-        approvedBy: null,
-        createdAt: new Date().toISOString(),
-        ...noCutting,
-    }
-    const saved = options.pending ? purchase : approveNow(purchase, options.by)
-    purchases = [...purchases, saved]
-    return saved
-}
+export const createPurchase = async (input: PurchaseInput): Promise<Purchase> =>
+    remember(await request<Purchase>(base, { body: toBody(input) }))
 
 /**
  * Only while pending or in stock. A stock truck's charge is corrected with a reversal row plus a
  * new charge, never by editing the old row.
  */
-export const updatePurchase = async (id: string, input: PurchaseInput): Promise<Purchase> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'pending' && current.status !== 'in_stock') {
-        throw new ApiError(409, { code: 'NOT_EDITABLE' })
-    }
-    assertNotDuplicate(input, id)
-    const total = totalOf(input.tons, input.ratePerTon, input.discount)
-    if (current.status === 'in_stock') {
-        const detail = `Truck ${current.mark} · purchi ${input.purchiNo}`
-        postSupplierEntry({ supplierId: current.supplierId, date: today(), kind: 'credit', amount: current.total, detail: `Reversal · ${detail}` })
-        postSupplierEntry({ supplierId: input.supplierId, date: input.date, kind: 'charge', amount: total, detail })
-    }
-    return replace({
-        ...current,
-        ...input,
-        total,
-        mark: current.markSeq ? `${current.markSeq}/${input.stones}` : null,
-    })
-}
+export const updatePurchase = async (id: string, input: PurchaseInput): Promise<Purchase> =>
+    remember(await request<Purchase>(`${base}/${id}`, { method: 'PATCH', body: toBody(input) }))
 
-export const approvePurchase = async (id: string, by: string): Promise<Purchase> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'pending') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    return replace(approveNow(current, by))
-}
+export const approvePurchase = async (id: string): Promise<Purchase> =>
+    remember(await request<Purchase>(`${base}/${id}/approve`, { method: 'POST', body: {} }))
 
-export const rejectPurchase = async (id: string, reason: string, by: string): Promise<Purchase> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'pending') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    return replace({ ...current, status: 'rejected', reason, approvedBy: by })
-}
+export const rejectPurchase = async (id: string, reason: string): Promise<Purchase> =>
+    remember(await request<Purchase>(`${base}/${id}/reject`, { body: { reason } }))
 
 /** Only before cutting starts. The charge comes off the khata as a reversal row. */
-export const cancelPurchase = async (id: string, reason: string): Promise<Purchase> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'in_stock') throw new ApiError(409, { code: 'CANCEL_AFTER_CUTTING' })
-    postSupplierEntry({
-        supplierId: current.supplierId,
-        date: today(),
-        kind: 'credit',
-        amount: current.total,
-        detail: `Cancelled · truck ${current.mark} · purchi ${current.purchiNo}`,
-    })
-    return replace({ ...current, status: 'cancelled', reason })
-}
+export const cancelPurchase = async (id: string, reason: string): Promise<Purchase> =>
+    remember(await request<Purchase>(`${base}/${id}/cancel`, { body: { reason } }))

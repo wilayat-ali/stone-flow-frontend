@@ -1,8 +1,5 @@
-import { ApiError } from '@/lib/client-api'
+import { request } from '@/lib/client-api'
 import { allPurchases } from './purchases'
-import { markSupplierChequeCleared, postSupplierEntry } from './suppliers'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const paymentMethods = ['cash', 'bank_transfer', 'cheque'] as const
 export type PaymentMethod = (typeof paymentMethods)[number]
@@ -83,6 +80,9 @@ export type PurchasePaymentInfo = {
 export const paymentsQueryKey = 'supplier-payments'
 export const chequesQueryKey = 'supplier-cheques'
 
+const paymentsBase = '/api/supplier-payments'
+const chequesBase = '/api/supplier-cheques'
+
 const today = () => new Date().toISOString().slice(0, 10)
 
 const addDays = (date: string, days: number) => {
@@ -99,95 +99,21 @@ export const chequeState = (cheque: Cheque): ChequeState => {
 
 export const isDueThisWeek = (cheque: Cheque) => cheque.status === 'issued' && cheque.chequeDate <= addDays(today(), 7)
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-// Money rows really go through the ledger service (03a); here only the supplier khata is updated.
-let payments: SupplierPayment[] = [
-    {
-        id: 'pay1',
-        voucherNo: 'PV-0001',
-        date: '2026-09-12',
-        supplierId: 's1',
-        supplierName: 'Haji Gul Khan',
-        method: 'cash',
-        accountId: '',
-        accountName: 'Cash in hand',
-        amount: 145000,
-        reference: '',
-        chequeId: null,
-        forPurchaseIds: ['p1'],
-        status: 'confirmed',
-        note: 'Paid at purchase',
-        createdBy: 'Wilayat Ali',
-    },
-    {
-        id: 'pay2',
-        voucherNo: 'PV-0002',
-        date: '2026-10-08',
-        supplierId: 's1',
-        supplierName: 'Haji Gul Khan',
-        method: 'cheque',
-        accountId: '',
-        accountName: 'HBL · Current A/C',
-        amount: 160000,
-        reference: '',
-        chequeId: 'chq1',
-        forPurchaseIds: ['p5'],
-        status: 'confirmed',
-        note: 'Paid at purchase',
-        createdBy: 'Wilayat Ali',
-    },
-    {
-        id: 'pay3',
-        voucherNo: 'PV-0003',
-        date: '2026-10-03',
-        supplierId: 's3',
-        supplierName: 'Sher Zaman',
-        method: 'bank_transfer',
-        accountId: '',
-        accountName: 'HBL · Current A/C',
-        amount: 300000,
-        reference: 'IBFT 551207',
-        chequeId: null,
-        forPurchaseIds: [],
-        status: 'confirmed',
-        note: '',
-        createdBy: 'Wilayat Ali',
-    },
-]
-
-let cheques: Cheque[] = [
-    {
-        id: 'chq1',
-        no: '445125',
-        accountId: '',
-        accountName: 'HBL · Current A/C',
-        supplierId: 's1',
-        supplierName: 'Haji Gul Khan',
-        amount: 160000,
-        issuedOn: '2026-10-08',
-        chequeDate: '2026-10-14',
-        status: 'issued',
-        statusDate: null,
-        reason: null,
-        charge: 0,
-        paymentId: 'pay2',
-        replacedByPaymentId: null,
-    },
-]
-
-let voucherSeq = 3
+// The last lists the backend gave. `paymentsByPurchase` reads them at once, so it can be called while rendering.
+let payments: SupplierPayment[] = []
+let cheques: Cheque[] = []
 
 const byDateDesc = (a: { date: string; id: string }, b: { date: string; id: string }) =>
     b.date.localeCompare(a.date) || b.id.localeCompare(a.id)
 
 export const listPayments = async (): Promise<SupplierPayment[]> => {
-    await delay()
+    payments = await request<SupplierPayment[]>(paymentsBase)
     return [...payments].sort(byDateDesc)
 }
 
 /** Cheques that need a decision first, then by cheque date. */
 export const listCheques = async (): Promise<Cheque[]> => {
-    await delay()
+    cheques = await request<Cheque[]>(chequesBase)
     const rank = (c: Cheque) => (chequeState(c) === 'confirm' ? 0 : c.status === 'issued' ? 1 : 2)
     return [...cheques].sort(
         (a, b) =>
@@ -247,162 +173,37 @@ export const paymentsByPurchase = (): Map<string, PurchasePaymentInfo> => {
     return new Map([...items].map(([id, v]) => [id, { paid: v.paid, unclearedCheque: v.uncleared }]))
 }
 
-const supplierDetail = (payment: SupplierPayment, cheque?: Cheque) =>
-    cheque
-        ? `Cheque no. ${cheque.no} · ${payment.accountName} · dated ${cheque.chequeDate}`
-        : payment.method === 'cash'
-          ? `Cash paid · ${payment.voucherNo}`
-          : `Bank transfer · ${payment.accountName}${payment.reference ? ` · ${payment.reference}` : ''}`
-
-/** The payment now counts: it comes off what the supplier is owed. */
-const postToKhata = (payment: SupplierPayment) => {
-    const cheque = chequeOf(payment)
-    postSupplierEntry({
-        supplierId: payment.supplierId,
-        date: payment.date,
-        kind: 'credit',
-        amount: payment.amount,
-        detail: supplierDetail(payment, cheque),
-        unclearedCheque: cheque?.status === 'issued',
-        sourceId: payment.id,
-    })
-}
+/** What the backend takes: names are looked up there, and a cheque's fields only matter for a cheque. */
+const toBody = (input: PaymentInput) => ({
+    date: input.date,
+    supplierId: input.supplierId,
+    method: input.method,
+    accountId: input.accountId,
+    amount: input.amount,
+    ...(input.method === 'bank_transfer' && input.reference ? { reference: input.reference } : {}),
+    ...(input.method === 'cheque' ? { chequeNo: input.chequeNo, chequeDate: input.chequeDate } : {}),
+    forPurchaseIds: input.forPurchaseIds,
+    note: input.note,
+    ...(input.replacesChequeId ? { replacesChequeId: input.replacesChequeId } : {}),
+})
 
 /**
- * A munshi's payment waits as `pending` (no effect) when approval is on; anyone else's counts at once.
- * A cheque is recorded when it is given, but reaches the bank only when it clears.
+ * A munshi's payment waits as `pending` (no effect) while approval is on; anyone else's counts at once. The
+ * backend decides which. A cheque is recorded when it is given, but reaches the bank only when it clears.
  */
-export const createPayment = async (
-    input: PaymentInput,
-    options: { pending: boolean; by: string }
-): Promise<SupplierPayment> => {
-    await delay()
-    if (input.method === 'cheque') {
-        const used = cheques.some((c) => c.accountId === input.accountId && c.no === input.chequeNo && c.status !== 'cancelled')
-        if (used) throw new ApiError(409, { code: 'DUPLICATE_CHEQUE' })
-    }
-    const id = crypto.randomUUID()
-    const chequeId = input.method === 'cheque' ? crypto.randomUUID() : null
-    voucherSeq += 1
-    const payment: SupplierPayment = {
-        id,
-        voucherNo: `PV-${String(voucherSeq).padStart(4, '0')}`,
-        date: input.date,
-        supplierId: input.supplierId,
-        supplierName: input.supplierName,
-        method: input.method,
-        accountId: input.accountId,
-        accountName: input.accountName,
-        amount: input.amount,
-        reference: input.reference,
-        chequeId,
-        forPurchaseIds: input.forPurchaseIds,
-        status: options.pending ? 'pending' : 'confirmed',
-        note: input.note,
-        createdBy: options.by,
-    }
-    if (chequeId) {
-        cheques = [
-            ...cheques,
-            {
-                id: chequeId,
-                no: input.chequeNo,
-                accountId: input.accountId,
-                accountName: input.accountName,
-                supplierId: input.supplierId,
-                supplierName: input.supplierName,
-                amount: input.amount,
-                issuedOn: input.date,
-                chequeDate: input.chequeDate,
-                status: 'issued',
-                statusDate: null,
-                reason: null,
-                charge: 0,
-                paymentId: id,
-                replacedByPaymentId: null,
-            },
-        ]
-    }
-    if (input.replacesChequeId) {
-        cheques = cheques.map((c) => (c.id === input.replacesChequeId ? { ...c, replacedByPaymentId: id } : c))
-    }
-    payments = [...payments, payment]
-    if (payment.status === 'confirmed') postToKhata(payment)
-    return payment
-}
+export const createPayment = (input: PaymentInput) => request<SupplierPayment>(paymentsBase, { body: toBody(input) })
 
-export const confirmPayment = async (id: string): Promise<SupplierPayment> => {
-    await delay()
-    const payment = payments.find((p) => p.id === id)
-    if (!payment) throw new ApiError(404, { code: 'notFound' })
-    if (payment.status !== 'pending') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    const confirmed = { ...payment, status: 'confirmed' as const }
-    payments = payments.map((p) => (p.id === id ? confirmed : p))
-    postToKhata(confirmed)
-    return confirmed
-}
+export const confirmPayment = (id: string) =>
+    request<SupplierPayment>(`${paymentsBase}/${id}/confirm`, { method: 'POST', body: {} })
 
 /** Rejecting reverses a pending payment: nothing was ever posted, and its cheque is cancelled. */
-export const rejectPayment = async (id: string): Promise<SupplierPayment> => {
-    await delay()
-    const payment = payments.find((p) => p.id === id)
-    if (!payment) throw new ApiError(404, { code: 'notFound' })
-    if (payment.status !== 'pending') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    const reversed = { ...payment, status: 'reversed' as const }
-    payments = payments.map((p) => (p.id === id ? reversed : p))
-    cheques = cheques.map((c) => (c.paymentId === id ? { ...c, status: 'cancelled', statusDate: today() } : c))
-    return reversed
-}
-
-const findCheque = (id: string) => {
-    const cheque = cheques.find((c) => c.id === id)
-    if (!cheque) throw new ApiError(404, { code: 'notFound' })
-    return cheque
-}
-
-const setCheque = (next: Cheque) => {
-    cheques = cheques.map((c) => (c.id === next.id ? next : c))
-    return next
-}
+export const rejectPayment = (id: string) => request<SupplierPayment>(`${paymentsBase}/${id}/reject`, { body: {} })
 
 /** The money left the bank: the cheque stops showing as uncleared. */
-export const clearCheque = async (id: string, date: string): Promise<Cheque> => {
-    await delay()
-    const cheque = findCheque(id)
-    if (cheque.status !== 'issued') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    markSupplierChequeCleared(cheque.paymentId)
-    return setCheque({ ...cheque, status: 'cleared', statusDate: date })
-}
+export const clearCheque = (id: string, date: string) => request<Cheque>(`${chequesBase}/${id}/clear`, { body: { date } })
 
-/** The amount is owed again: a charge goes back on the khata, the original payment row stays. */
-const owedAgain = (cheque: Cheque, date: string, what: string) =>
-    postSupplierEntry({
-        supplierId: cheque.supplierId,
-        date,
-        kind: 'charge',
-        amount: cheque.amount,
-        detail: `Cheque no. ${cheque.no} ${what}`,
-        sourceId: cheque.paymentId,
-    })
-
-export const bounceCheque = async (
-    id: string,
-    values: { date: string; reason: string; charge: number }
-): Promise<Cheque> => {
-    await delay()
-    const cheque = findCheque(id)
-    if (cheque.status !== 'issued') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    markSupplierChequeCleared(cheque.paymentId)
-    owedAgain(cheque, values.date, 'bounced')
-    return setCheque({ ...cheque, status: 'bounced', statusDate: values.date, reason: values.reason, charge: values.charge })
-}
+export const bounceCheque = (id: string, values: { date: string; reason: string; charge: number }) =>
+    request<Cheque>(`${chequesBase}/${id}/bounce`, { body: values })
 
 /** The supplier returned it unused. */
-export const cancelCheque = async (id: string): Promise<Cheque> => {
-    await delay()
-    const cheque = findCheque(id)
-    if (cheque.status !== 'issued') throw new ApiError(409, { code: 'ALREADY_DECIDED' })
-    markSupplierChequeCleared(cheque.paymentId)
-    owedAgain(cheque, today(), 'cancelled')
-    return setCheque({ ...cheque, status: 'cancelled', statusDate: today() })
-}
+export const cancelCheque = (id: string) => request<Cheque>(`${chequesBase}/${id}/cancel`, { method: 'POST', body: {} })

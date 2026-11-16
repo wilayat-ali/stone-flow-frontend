@@ -187,8 +187,6 @@ export function ExpensesPage({ roleKey, userName }: { roleKey: string; userName:
             <PaymentSheet
                 open={payment !== null}
                 onOpenChange={(open) => !open && setPayment(null)}
-                roleKey={roleKey}
-                userName={userName}
                 preset={payment ?? undefined}
             />
         </div>

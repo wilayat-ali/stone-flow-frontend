@@ -1,3 +1,4 @@
+import { listWorkerRates } from './worker-rates'
 import { ApiError } from '@/lib/client-api'
 import './work-register'
 import { presentDays } from './attendance'
@@ -118,7 +119,7 @@ const summarise = (worker: Worker): WorkerSummary => {
 export type WorkerFilters = { payType?: PayType; factoryId?: string; q?: string }
 
 export const listWorkers = async (filters: WorkerFilters = {}): Promise<WorkerSummary[]> => {
-    await delay()
+    await Promise.all([delay(), listWorkerRates()])
     const q = filters.q?.trim().toLowerCase()
     return allWorkers()
         .filter(
@@ -131,7 +132,7 @@ export const listWorkers = async (filters: WorkerFilters = {}): Promise<WorkerSu
 }
 
 export const getWorkerKhata = async (workerId: string): Promise<WorkerKhataRow[]> => {
-    await delay(250)
+    await Promise.all([delay(250), listWorkerRates()])
     const worker = allWorkers().find((w) => w.id === workerId)
     if (!worker) throw new ApiError(404, { code: 'notFound' })
     return khataOf(worker)

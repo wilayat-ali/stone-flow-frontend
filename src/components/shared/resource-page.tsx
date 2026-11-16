@@ -67,6 +67,8 @@ export type ResourceLabels = DataTableLabels & {
     cancel: string
     actions: string
     openMenu: string
+    /** The sentence for a failed save or deactivate. */
+    errorMessage: (error: unknown) => string
 }
 
 export type ResourcePageProps<T extends { id: string }, V extends FieldValues> = {
@@ -132,6 +134,7 @@ export function ResourcePage<T extends { id: string }, V extends FieldValues>({
             setSheetOpen(false)
             invalidate()
         },
+        onError: (error) => toast.error(labels.errorMessage(error)),
     })
 
     const remove = useMutation({
@@ -140,6 +143,10 @@ export function ResourcePage<T extends { id: string }, V extends FieldValues>({
             toast.success(labels.deleted)
             setDeleting(null)
             invalidate()
+        },
+        onError: (error) => {
+            toast.error(labels.errorMessage(error))
+            setDeleting(null)
         },
     })
 

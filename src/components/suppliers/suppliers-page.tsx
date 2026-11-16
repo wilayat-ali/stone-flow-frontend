@@ -34,7 +34,7 @@ type BalanceFilter = NonNullable<SupplierFilters['balance']> | 'all'
  * Everyone we pay, each with a khata. Owner, Partner and Manager add and edit, a Munshi can add,
  * a Viewer only looks (see `SUPPLIERS_*_ROLES`); the backend will enforce the same.
  */
-export function SuppliersPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function SuppliersPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('suppliers')
     const money = useMoney()
     const labels = useTableLabels()
@@ -172,8 +172,6 @@ export function SuppliersPage({ roleKey, userName }: { roleKey: string; userName
             <PaymentSheet
                 open={payment !== null}
                 onOpenChange={(open) => !open && setPayment(null)}
-                roleKey={roleKey}
-                userName={userName}
                 preset={payment ?? undefined}
             />
 
