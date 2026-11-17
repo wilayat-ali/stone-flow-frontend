@@ -49,7 +49,7 @@ const thisMonth = () => new Date().toISOString().slice(0, 7)
  * give on credit. Owner, Partner and Manager approve, cancel and give cash; a munshi records expenses
  * (they wait for approval when it is on) and pays from Munshi cash.
  */
-export function ExpensesPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function ExpensesPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('expenses')
     const format = useFormatter()
     const money = useMoney()
@@ -164,13 +164,13 @@ export function ExpensesPage({ roleKey, userName }: { roleKey: string; userName:
             </Tabs>
 
             {tab === 'register' ? (
-                <WorkRegisterTab canEnter={canEnter} userName={userName} />
+                <WorkRegisterTab canEnter={canEnter} />
             ) : tab === 'attendance' ? (
-                <AttendanceTab canEnter={canEnter} userName={userName} />
+                <AttendanceTab canEnter={canEnter} />
             ) : tab === 'workers' ? (
                 <WorkersTab canEnter={canEnter} canManage={canManage} onPay={(worker) => setPayWorker({ workerId: worker.id })} />
             ) : tab === 'monthEnd' ? (
-                <MonthEndTab canClose={canCloseMonth(roleKey)} canReopen={canReopenMonth(roleKey)} userName={userName} />
+                <MonthEndTab canClose={canCloseMonth(roleKey)} canReopen={canReopenMonth(roleKey)} />
             ) : tab === 'shops' ? (
                 <ShopsTab
                     canPay={canEnter}
@@ -181,9 +181,9 @@ export function ExpensesPage({ roleKey, userName }: { roleKey: string; userName:
                 <ExpensesTab canEnter={canEnter} canManage={canManage} status={status} onStatusChange={setStatus} />
             )}
 
-            <ExpenseSheet open={sheet} onOpenChange={setSheet} roleKey={roleKey} userName={userName} />
-            <GiveCashSheet open={give} onOpenChange={setGive} userName={userName} />
-            <PayWorkerSheet open={payWorker !== null} onOpenChange={(open) => !open && setPayWorker(null)} roleKey={roleKey} userName={userName} preset={payWorker ?? undefined} />
+            <ExpenseSheet open={sheet} onOpenChange={setSheet} roleKey={roleKey} />
+            <GiveCashSheet open={give} onOpenChange={setGive} />
+            <PayWorkerSheet open={payWorker !== null} onOpenChange={(open) => !open && setPayWorker(null)} roleKey={roleKey} preset={payWorker ?? undefined} />
             <PaymentSheet
                 open={payment !== null}
                 onOpenChange={(open) => !open && setPayment(null)}

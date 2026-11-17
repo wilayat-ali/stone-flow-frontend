@@ -23,12 +23,10 @@ import { todayIso } from '@/lib/format'
  */
 export function GiveStoneDialog({
     bill,
-    userName,
     onClose,
     onGiven,
 }: {
     bill: Bill | null
-    userName: string
     onClose: () => void
     /** Called with the new collection so the page can open its gate pass. */
     onGiven: (bill: Bill, collection: Collection) => void
@@ -37,13 +35,13 @@ export function GiveStoneDialog({
     return (
         <Dialog open={!!bill} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-                {bill && <GiveForm key={bill.id} bill={bill} userName={userName} onClose={onClose} onGiven={onGiven} title={t('title', { no: bill.billNo })} />}
+                {bill && <GiveForm key={bill.id} bill={bill} onClose={onClose} onGiven={onGiven} title={t('title', { no: bill.billNo })} />}
             </DialogContent>
         </Dialog>
     )
 }
 
-function GiveForm({ bill, userName, title, onClose, onGiven }: { bill: Bill; userName: string; title: string; onClose: () => void; onGiven: (bill: Bill, collection: Collection) => void }) {
+function GiveForm({ bill, title, onClose, onGiven }: { bill: Bill; title: string; onClose: () => void; onGiven: (bill: Bill, collection: Collection) => void }) {
     const t = useTranslations('sales.give')
     const tc = useTranslations('common')
     const format = useFormatter()
@@ -68,8 +66,7 @@ function GiveForm({ bill, userName, title, onClose, onGiven }: { bill: Bill; use
                     vehicle,
                     receivedBy,
                     lines: open.map((x) => ({ lineNo: x.line.lineNo, qty: Number(qty[x.line.lineNo]) || 0, inches: x.line.item.itemType === 'counter' ? Number(inches[x.line.lineNo]) || 0 : 0 })),
-                },
-                userName
+                }
             ),
         onSuccess: ({ bill: saved, collection }) => {
             toast.success(t('given', { no: collection.collNo }))

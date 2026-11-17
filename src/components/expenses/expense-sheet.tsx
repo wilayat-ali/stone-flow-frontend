@@ -11,9 +11,8 @@ import { FormSheet } from '@/components/shared/form-sheet'
 import { TileField } from '@/components/shared/tile-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { companySettingsKey, getCompanySettings } from '@/features/company-settings'
 import { expenseCategoriesQueryKey, listExpenseCategories } from '@/features/expense-categories'
-import { createExpense, expensesQueryKey, MUNSHI_ACCOUNT_ID, munshiCashQueryKey, payModes } from '@/features/expenses'
+import { createExpense, expensesQueryKey, munshiCashQueryKey, payModes } from '@/features/expenses'
 import { expenseSchema, type ExpenseValues } from '@/features/expenses-schema'
 import { factoriesQueryKey, listFactories } from '@/features/factories'
 import { listSuppliers, suppliersQueryKey } from '@/features/suppliers'
@@ -22,7 +21,7 @@ import { useMoney } from '@/hooks/use-money'
 import { todayIso } from '@/lib/format'
 import { useAccountBalances } from './use-account-balances'
 
-const emptyValues = (roleKey: string): ExpenseValues => ({
+const emptyValues = (roleKey: string, munshiAccountId = ''): ExpenseValues => ({
     date: todayIso(),
     categoryId: '',
     description: '',
@@ -30,7 +29,7 @@ const emptyValues = (roleKey: string): ExpenseValues => ({
     factoryId: '',
     payMode: 'paid',
     // A munshi spends from his own cash.
-    accountId: roleKey === 'munshi' ? MUNSHI_ACCOUNT_ID : '',
+    accountId: roleKey === 'munshi' ? munshiAccountId : '',
     dueDate: '',
     shopId: '',
     photoName: '',
@@ -45,12 +44,10 @@ export function ExpenseSheet({
     open,
     onOpenChange,
     roleKey,
-    userName,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     roleKey: string
-    userName: string
 }) {
     const t = useTranslations('expenses.sheet')
     const tc = useTranslations('common')
@@ -65,12 +62,11 @@ export function ExpenseSheet({
     const categories = useQuery({ queryKey: [expenseCategoriesQueryKey], queryFn: listExpenseCategories, enabled: open })
     const factories = useQuery({ queryKey: [factoriesQueryKey], queryFn: listFactories, enabled: open })
     const shops = useQuery({ queryKey: [suppliersQueryKey, { type: 'shop' }], queryFn: () => listSuppliers({ type: 'shop' }), enabled: open })
-    const settings = useQuery({ queryKey: companySettingsKey, queryFn: getCompanySettings })
     const { accounts, munshi } = useAccountBalances(open, t('munshiCash'))
 
     useEffect(() => {
-        if (open) form.reset(emptyValues(roleKey))
-    }, [open, roleKey, form])
+        if (open) form.reset(emptyValues(roleKey, munshi.id))
+    }, [open, roleKey, form, munshi.id])
 
     const [payMode, accountId, amount, factoryId] = useWatch({ control: form.control, name: ['payMode', 'accountId', 'amount', 'factoryId'] })
 
@@ -109,8 +105,7 @@ export function ExpenseSheet({
                     shopName: shop?.name ?? '',
                     photoName: values.photoName || null,
                 },
-                { pending: roleKey === 'munshi' && (settings.data?.approvalRequired ?? true), by: userName }
-            )
+                )
         },
         onSuccess: (expense) => {
             toast.success(expense.status === 'pending' ? t('savedPending') : t('saved'))

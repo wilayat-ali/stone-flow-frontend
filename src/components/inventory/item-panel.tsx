@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useFormatter, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -14,12 +14,23 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { DataTable } from '@/components/shared/data-table'
 import { StatCard } from '@/components/shared/stat-card'
-import { inventoryQueryKey, setAlert, type InventoryRow } from '@/features/inventory'
-import { stockHistory, type HistoryRow } from '@/features/production-entries'
+import { inventoryQueryKey, mergeHistory, setAlert, type InventoryRow } from '@/features/inventory'
+import { stockHistory as loadStockHistory, stockKey } from '@/features/stock/api'
+import type { HistoryRow } from '@/features/production-entries'
 import { useTableLabels } from '@/features/resource-labels'
 import { useDirection } from '@/hooks/use-direction'
 import { useMoney } from '@/hooks/use-money'
 import { useItemText } from './use-item-text'
+
+const loadHistory = async (ids: InventoryRow['ids'] & object) => {
+    const rows: Awaited<ReturnType<typeof loadStockHistory>>['rows'] = []
+    for (let page = 1; ; page += 1) {
+        const result = await loadStockHistory(ids, page)
+        rows.push(...result.rows)
+        if (rows.length >= result.total || result.rows.length === 0) break
+    }
+    return rows
+}
 
 /** Side panel for one item: in stock, reserved, available, cost, value, the low-stock alert, and history. */
 export function ItemPanel({
@@ -41,7 +52,13 @@ export function ItemPanel({
     const { isRtl } = useDirection()
     const [editing, setEditing] = useState(false)
 
-    const history = useMemo(() => (row ? [...stockHistory(row.item)].reverse() : []), [row])
+    // What the backend holds for this item, on top of what the Production and Sales mocks recorded.
+    const realHistory = useQuery({
+        queryKey: [...stockKey, 'history', row?.key ?? ''],
+        queryFn: () => loadHistory(row!.ids!),
+        enabled: !!row?.ids,
+    })
+    const history = useMemo(() => (row ? mergeHistory(realHistory.data ?? []).reverse() : []), [row, realHistory.data])
     const counter = row?.item.itemType === 'counter'
 
     const columns = useMemo<ColumnDef<HistoryRow>[]>(

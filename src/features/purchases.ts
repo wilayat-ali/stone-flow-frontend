@@ -1,6 +1,6 @@
-import { ApiError, request } from '@/lib/client-api'
+import { request } from '@/lib/client-api'
 
-/** `cutting` and `cut` are set by Production (05a); this module only reads them. */
+/** `cutting` and `cut` are set by Production (see `features/production.ts`); this module only reads them. */
 export const purchaseStatuses = ['pending', 'in_stock', 'cutting', 'cut', 'rejected', 'cancelled'] as const
 
 export type PurchaseStatus = (typeof purchaseStatuses)[number]
@@ -42,21 +42,12 @@ export type Purchase = {
     machineName: string | null
     thekadarId: string | null
     thekadarName: string | null
+    /** What the thekadar earns per ton: the rate suggested when the truck is finished. */
+    thekadarRate: number | null
     cutStart: string | null
     cutEnd: string | null
     cutRatePerTon: number | null
 }
-
-/** The cutting fields every truck starts with. */
-export const noCutting = {
-    machineId: null,
-    machineName: null,
-    thekadarId: null,
-    thekadarName: null,
-    cutStart: null,
-    cutEnd: null,
-    cutRatePerTon: null,
-} as const
 
 export type PurchaseFilters = {
     status?: PurchaseStatus
@@ -89,35 +80,21 @@ const today = () => new Date().toISOString().slice(0, 10)
 export const daysSince = (date: string) =>
     Math.max(0, Math.round((new Date(today()).getTime() - new Date(date).getTime()) / 86_400_000))
 
-// Production (still a mock) moves a truck through cutting. The backend only knows approved, in-stock trucks,
-// so what Production changes is kept here on top of the real rows until Production is integrated.
-const cuttingOverlay = new Map<string, Partial<Purchase>>()
-
-/** The last list the backend gave, with Production's changes on top, for the mock modules that read it at once. */
+/** The last list the backend gave, for the mock modules that read it at once. */
 let known: Purchase[] = []
 
-const withOverlay = (purchase: Purchase): Purchase => ({ ...purchase, ...cuttingOverlay.get(purchase.id) })
-
-const remember = (purchase: Purchase) => {
-    const next = withOverlay(purchase)
-    known = known.some((p) => p.id === next.id) ? known.map((p) => (p.id === next.id ? next : p)) : [...known, next]
-    return next
+/** Keeps the last list up to date with a truck the backend just answered with (Production moves trucks too). */
+export const remember = (purchase: Purchase) => {
+    known = known.some((p) => p.id === purchase.id) ? known.map((p) => (p.id === purchase.id ? purchase : p)) : [...known, purchase]
+    return purchase
 }
 
-/** Synchronous view for the payments and production mocks (the last list loaded). */
+/** Synchronous view for the payments, production and sales mocks (the last list loaded). */
 export const allPurchases = () => known
-
-/** Production (05a) moves a truck through cutting; it never edits the purchase itself. */
-export const patchPurchase = (id: string, patch: Partial<Purchase>): Purchase => {
-    const current = known.find((p) => p.id === id)
-    if (!current) throw new ApiError(404, { code: 'notFound' })
-    cuttingOverlay.set(id, { ...cuttingOverlay.get(id), ...patch })
-    return remember(current)
-}
 
 /** Newest first; oldest first when looking at trucks waiting in the yard. */
 export const listPurchases = async (filters: PurchaseFilters = {}): Promise<Purchase[]> => {
-    known = (await request<Purchase[]>(base)).map(withOverlay)
+    known = await request<Purchase[]>(base)
     const rows = known.filter(
         (p) =>
             (!filters.status || p.status === filters.status) &&

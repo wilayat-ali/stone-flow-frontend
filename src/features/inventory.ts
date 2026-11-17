@@ -1,9 +1,9 @@
-import { listEntryRecords, sqFtOf, stockRows, itemKeyOf, type StockItem } from './production-entries'
+import { request } from '@/lib/client-api'
+import { listEntryRecords, loadAllEntries, sqFtOf, stockRows, itemKeyOf, type HistoryRow, type StockItem } from './production-entries'
 import { allPurchases, listPurchases } from './purchases'
-import { reservedFor } from './sales'
-import { workEntriesFor } from './work-entries'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { listBills, reservedFor } from './sales'
+import { realStockRows } from './stock/real-stock'
+import type { ItemKey, StockHistoryRow } from './stock/types'
 
 export const inventoryQueryKey = 'inventory'
 
@@ -25,20 +25,44 @@ export type InventoryRow = {
     value: number | null
     minQty: number | null
     low: boolean
+    /** The backend's ids for this item, when the backend holds stock of it (for its history). */
+    ids: ItemKey | null
     /** Slabs: the marks of the trucks they were cut from. */
     trucks: string[]
 }
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-const alerts = new Map<string, number>([[itemKeyOf({ itemType: 'piece', material: 'Ziarat White', factoryId: 'main', soot: '14', size: '12x24', finish: 'unpolished' }), 200]])
-
-export const alertOf = (item: StockItem) => alerts.get(itemKeyOf(item)) ?? null
-
 /** `0` (or less) removes the alert. */
 export const setAlert = async (item: StockItem, minQty: number): Promise<void> => {
-    await delay()
-    if (minQty > 0) alerts.set(itemKeyOf(item), minQty)
-    else alerts.delete(itemKeyOf(item))
+    await request<{ minQty: number | null }>('/api/stock/alerts', { method: 'PUT', body: { item, minQty: Math.max(0, Math.round(minQty)) } })
+}
+
+/** Where a real movement came from, for the history list. */
+const sourceOf = (sourceType: string): HistoryRow['source'] =>
+    sourceType.startsWith('production') ? 'production' : sourceType.startsWith('sale') ? 'sale' : 'stock_entry'
+
+/**
+ * One item's history: the movements the backend holds (stock entries, production steps, stone given on
+ * bills), oldest first, with the running balance worked out again.
+ */
+export const mergeHistory = (real: StockHistoryRow[]): HistoryRow[] => {
+    const raw: Omit<HistoryRow, 'balanceQty' | 'balanceInches'>[] = [
+        ...real.map((r) => ({
+            id: r.id,
+            date: r.date,
+            source: sourceOf(r.sourceType),
+            ref: (r.note ?? '').split(' · ')[0] || r.sourceType,
+            type: null,
+            qty: r.qty,
+            inches: r.inches,
+        })),
+    ].sort((a, b) => a.date.localeCompare(b.date) || a.ref.localeCompare(b.ref))
+    let qty = 0
+    let inches = 0
+    return raw.map((r) => {
+        qty += r.qty
+        inches += r.inches
+        return { ...r, balanceQty: qty, balanceInches: inches }
+    })
 }
 
 type Cost = { perSqft: number | null; perTon: number | null; tonsPerSlab: number | null }
@@ -57,7 +81,8 @@ const costOf = (material: string): Cost => {
     const truckCost = (purchaseId: string | null) => {
         const truck = allPurchases().find((p) => p.id === purchaseId)
         if (!truck) return { cost: 0, tons: 0 }
-        const pay = workEntriesFor('truck_cut', truck.id).reduce((s, w) => s + w.amount, 0)
+        // What cutting the truck cost: its tons at the rate it was finished with (the thekadar's pay or the cutting factory's charge).
+        const pay = Math.round(truck.tons * (truck.cutRatePerTon ?? 0))
         return { cost: truck.total + pay, tons: truck.tons }
     }
 
@@ -82,8 +107,10 @@ const costOf = (material: string): Cost => {
 }
 
 export const listInventory = async (): Promise<InventoryRow[]> => {
-    await listPurchases()
-    await delay()
+    // What bills have booked comes from Sales; someone without access to Sales sees nothing reserved.
+    await Promise.all([listPurchases(), loadAllEntries(), listBills().catch(() => [])])
+    // The backend's rows by name key: they carry the running-low level and the ids.
+    const real = new Map(realStockRows().map((r) => [itemKeyOf(r.item), r]))
     const costs = new Map<string, Cost>()
     const costFor = (material: string) => {
         if (!costs.has(material)) costs.set(material, costOf(material))
@@ -97,7 +124,8 @@ export const listInventory = async (): Promise<InventoryRow[]> => {
             const reserved = reservedFor(r.item)
             const cost = costFor(r.item.material)
             const sqft = sqFtOf({ item: r.item, qty: r.qty, inches: r.inches })
-            const minQty = alerts.get(key) ?? null
+            const realRow = real.get(key)
+            const minQty = realRow?.minQty ?? null
             const slab = r.item.itemType === 'slab'
             // Pieces and counters are valued per sq.ft, slabs per ton × the average tons per slab.
             const value = slab
@@ -121,6 +149,17 @@ export const listInventory = async (): Promise<InventoryRow[]> => {
                 value,
                 minQty,
                 low: minQty !== null && r.qty < minQty,
+                ids: realRow
+                    ? {
+                          itemType: realRow.itemType,
+                          materialId: realRow.materialId,
+                          factoryId: realRow.factoryId,
+                          sootTypeId: realRow.sootTypeId,
+                          sootSizeId: realRow.sootSizeId,
+                          counterWidthId: realRow.counterWidthId,
+                          finish: realRow.finish,
+                      }
+                    : null,
                 trucks: slab
                     ? listEntryRecords()
                           .filter((e) => e.status === 'posted' && e.type === 'cut' && e.machineType === 'gangSaw' && e.material === r.item.material && e.factoryId === r.item.factoryId)

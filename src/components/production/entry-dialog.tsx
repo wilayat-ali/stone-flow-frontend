@@ -17,6 +17,7 @@ import { listMachines, machinesQueryKey } from '@/features/machines'
 import { pieceSizes, sootTypes, widthInches, type SootType } from '@/features/piece-sizes'
 import {
     entryTypes,
+    listSqftWorkers,
     postEntry,
     productionEntriesQueryKey,
     stockOnHand,
@@ -30,7 +31,6 @@ import {
 } from '@/features/production-entries'
 import { listOutputToCount, productionQueryKey } from '@/features/production'
 import { listWorkerRates, workerRatesQueryKey } from '@/features/worker-rates'
-import { listSqftWorkers, workersQueryKey } from '@/features/workers'
 import { useEntryErrorMessage } from '@/features/use-entry-error-message'
 import { useMoney } from '@/hooks/use-money'
 import { todayIso } from '@/lib/format'
@@ -57,12 +57,10 @@ const jobOf: Record<Exclude<EntryType, 'cut'>, string> = {
 export function EntryDialog({
     open,
     preset,
-    userName,
     onClose,
 }: {
     open: boolean
     preset: EntryPreset
-    userName: string
     onClose: () => void
 }) {
     const t = useTranslations('production.entries')
@@ -73,13 +71,13 @@ export function EntryDialog({
                     <DialogTitle>{t('title')}</DialogTitle>
                     <DialogDescription>{t('description')}</DialogDescription>
                 </DialogHeader>
-                {open && <EntryForm preset={preset} userName={userName} onClose={onClose} />}
+                {open && <EntryForm preset={preset} onClose={onClose} />}
             </DialogContent>
         </Dialog>
     )
 }
 
-function EntryForm({ preset, userName, onClose }: { preset: EntryPreset; userName: string; onClose: () => void }) {
+function EntryForm({ preset, onClose }: { preset: EntryPreset; onClose: () => void }) {
     const t = useTranslations('production.entries')
     const tc = useTranslations('common')
     const tm = useTranslations('settings.machines.type')
@@ -91,7 +89,7 @@ function EntryForm({ preset, userName, onClose }: { preset: EntryPreset; userNam
     const factories = useQuery({ queryKey: [factoriesQueryKey], queryFn: listFactories })
     const machines = useQuery({ queryKey: [machinesQueryKey], queryFn: listMachines })
     const trucks = useQuery({ queryKey: [productionQueryKey, 'to-count'], queryFn: listOutputToCount })
-    const workers = useQuery({ queryKey: [workersQueryKey, 'sqft'], queryFn: listSqftWorkers })
+    const workers = useQuery({ queryKey: [productionQueryKey, 'sqft-workers'], queryFn: listSqftWorkers })
     const rates = useQuery({ queryKey: [workerRatesQueryKey], queryFn: listWorkerRates })
     const counterWidths = useQuery({ queryKey: [counterWidthsQueryKey], queryFn: listCounterWidths })
 
@@ -194,21 +192,18 @@ function EntryForm({ preset, userName, onClose }: { preset: EntryPreset; userNam
 
     const save = useMutation({
         mutationFn: () =>
-            postEntry(
-                {
-                    type,
-                    date,
-                    factoryId,
-                    factoryName: factory?.name ?? '',
-                    material,
-                    purchaseId: type === 'cut' ? (truck?.id ?? null) : null,
-                    machineType: type === 'cut' ? machineType : null,
-                    workerId: worker?.id ?? null,
-                    note,
-                    lines,
-                },
-                userName
-            ),
+            postEntry({
+                type,
+                date,
+                factoryId,
+                factoryName: factory?.name ?? '',
+                material,
+                purchaseId: type === 'cut' ? (truck?.id ?? null) : null,
+                machineType: type === 'cut' ? machineType : null,
+                workerId: worker?.id ?? null,
+                note,
+                lines,
+            }),
         onSuccess: (entry) => {
             toast.success(t('saved', { no: entry.entryNo }))
             for (const key of [productionEntriesQueryKey, productionQueryKey]) queryClient.invalidateQueries({ queryKey: [key] })

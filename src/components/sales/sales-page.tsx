@@ -16,8 +16,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard, StatCardGrid } from '@/components/shared/stat-card'
 import { canCreateSales, canManageSales } from '@/features/admin/roles'
-import { unclearedChequeTotal } from '@/features/customer-cheque-store'
-import { customerChequesQueryKey, dueCheques, listCustomerCheques } from '@/features/customer-payments'
+import { customerChequesQueryKey, dueCheques, listCustomerCheques, unclearedChequeTotal } from '@/features/customer-payments'
 import { useRouter } from '@/i18n/navigation'
 import { customersQueryKey, listCustomerSummaries } from '@/features/customers'
 import { inventoryQueryKey } from '@/features/inventory'
@@ -63,7 +62,7 @@ const thisMonth = () => new Date().toISOString().slice(0, 7)
  * or over several days. Stone leaves the yard only when it is collected. Orders, customer payments and
  * cheques have their own steps.
  */
-export function SalesPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function SalesPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('sales')
     const format = useFormatter()
     const money = useMoney()
@@ -118,7 +117,7 @@ export function SalesPage({ roleKey, userName }: { roleKey: string; userName: st
     const sqftMonth = month.reduce((s, b) => s + b.lines.reduce((a, l) => a + lineSqFt(l), 0), 0)
 
     const cancel = useMutation({
-        mutationFn: ({ bill, reason }: { bill: Bill; reason: string }) => cancelBill(bill.id, reason, userName),
+        mutationFn: ({ bill, reason }: { bill: Bill; reason: string }) => cancelBill(bill.id, reason),
         onSuccess: () => {
             toast.success(t('cancelled'))
             setCancelling(null)
@@ -388,7 +387,7 @@ export function SalesPage({ roleKey, userName }: { roleKey: string; userName: st
                 onReceive={(bill) => setReceive({ customerId: bill.customerId ?? undefined, billId: bill.id, billNo: bill.billNo, amount: Math.max(0, paymentInfo(bill).due) })}
             />
 
-            <ReceivePaymentSheet open={receive !== null} onOpenChange={(open) => !open && setReceive(null)} userName={userName} preset={receive ?? undefined} />
+            <ReceivePaymentSheet open={receive !== null} onOpenChange={(open) => !open && setReceive(null)} preset={receive ?? undefined} />
 
             <OrderPanel
                 order={openOrder}
@@ -407,7 +406,6 @@ export function SalesPage({ roleKey, userName }: { roleKey: string; userName: st
             <BillDialog
                 open={orderDialog}
                 mode="order"
-                userName={userName}
                 onClose={() => setOrderDialog(false)}
                 onSaved={() => undefined}
                 onSavedOrder={() => setTab('orders')}
@@ -428,12 +426,11 @@ export function SalesPage({ roleKey, userName }: { roleKey: string; userName: st
                 open={billDialog !== null}
                 bill={billDialog?.bill}
                 preset={billDialog?.preset}
-                userName={userName}
                 onClose={() => setBillDialog(null)}
                 onSaved={setParchi}
             />
 
-            <GiveStoneDialog bill={giving} userName={userName} onClose={() => setGiving(null)} onGiven={(bill, collection) => setGate({ bill, collection })} />
+            <GiveStoneDialog bill={giving} onClose={() => setGiving(null)} onGiven={(bill, collection) => setGate({ bill, collection })} />
 
             <ParchiDialog bill={parchi} onClose={() => setParchi(null)} />
             <GatePassDialog target={gate} onClose={() => setGate(null)} />

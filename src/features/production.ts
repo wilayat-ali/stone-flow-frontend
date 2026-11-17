@@ -1,16 +1,13 @@
-import { ApiError } from '@/lib/client-api'
+import { request } from '@/lib/client-api'
 import { listFactories, type Factory } from './factories'
-import { allJobs, type CuttingJob } from './cutting-jobs'
+import { allJobs, listJobs, type CuttingJob } from './cutting-jobs'
 import { listMachines, type Machine } from './machines'
-import { isCounted } from './production-entries'
-import { allPurchases, daysSince, listPurchases, patchPurchase, type Purchase } from './purchases'
-import { findCuttingFactorySupplier, postSupplierEntry } from './suppliers'
-import { postWorkEntry } from './work-entries'
-import { workerByName, workerById } from './workers'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { isCounted, loadAllEntries } from './production-entries'
+import { allPurchases, daysSince, listPurchases, remember, type Purchase } from './purchases'
 
 export const productionQueryKey = 'production'
+
+const base = '/api/production'
 
 /**
  * `waiting` is a truck in the yard, `cutting` is on a machine (or at another factory), and `ready` is a
@@ -79,8 +76,6 @@ export const viewOf = (row: CuttingRow) =>
               minDate: row.job.date,
           }
 
-const today = () => new Date().toISOString().slice(0, 10)
-
 const isOwnFactory = (factories: Factory[], factoryId: string) =>
     factories.find((f) => f.id === factoryId)?.kind !== 'cutting'
 
@@ -90,7 +85,7 @@ const isOwnFactory = (factories: Factory[], factoryId: string) =>
  * A customer's cut truck stays in the table as `ready` until they collect it.
  */
 export const listCuttingRows = async (filters: CuttingFilters = {}): Promise<CuttingRow[]> => {
-    const [factories] = await Promise.all([listFactories(), listPurchases()])
+    const [factories] = await Promise.all([listFactories(), listPurchases(), listJobs()])
 
     const own = allPurchases()
         .filter((p) => p.status === 'in_stock' || p.status === 'cutting')
@@ -131,13 +126,13 @@ export const listCuttingRows = async (filters: CuttingFilters = {}): Promise<Cut
 
 /** Cut trucks without a cut entry: "Needs attention: count output for truck 20/3". */
 export const listOutputToCount = async (): Promise<Purchase[]> => {
-    await Promise.all([delay(), listPurchases()])
+    await Promise.all([listPurchases(), loadAllEntries()])
     return allPurchases().filter((p) => p.status === 'cut' && !isCounted(p.id))
 }
 
 /** Which trucks are on which machine, so the send dialog can say "idle" or "2 trucks on it". */
 export const listMachineLoad = async (): Promise<{ machines: Machine[]; onMachine: Record<string, number> }> => {
-    const [machines] = await Promise.all([listMachines(), listPurchases()])
+    const [machines] = await Promise.all([listMachines(), listPurchases(), listJobs()])
     const onMachine: Record<string, number> = {}
     const add = (machineId: string | null) => {
         if (machineId) onMachine[machineId] = (onMachine[machineId] ?? 0) + 1
@@ -147,50 +142,22 @@ export const listMachineLoad = async (): Promise<{ machines: Machine[]; onMachin
     return { machines, onMachine }
 }
 
-const purchaseOf = async (id: string) => {
-    await listPurchases()
-    const purchase = allPurchases().find((p) => p.id === id)
-    if (!purchase) throw new ApiError(404, { code: 'notFound' })
-    return purchase
-}
-
-const assertDate = (date: string, earliest: string) => {
-    if (date > today()) throw new ApiError(400, { code: 'DATE_IN_FUTURE' })
-    if (date < earliest) throw new ApiError(400, { code: 'DATE_BEFORE_START' })
-}
-
 export type SendInput = { machineId: string; machineName: string; thekadarName: string; date: string }
 
 /**
  * Sends an own-factory truck to a machine of that factory: it becomes `cutting`. Several trucks can
  * be on one machine, and the same thekadar completes the whole truck.
  */
-export const sendToMachine = async (purchaseId: string, input: SendInput): Promise<Purchase> => {
-    await delay()
-    const purchase = await purchaseOf(purchaseId)
-    if (purchase.status !== 'in_stock') throw new ApiError(409, { code: 'NOT_WAITING' })
-    const machine = (await listMachines()).find((m) => m.id === input.machineId)
-    if (!machine || machine.factoryId !== purchase.factoryId) throw new ApiError(409, { code: 'MACHINE_OTHER_FACTORY' })
-    assertDate(input.date, purchase.date)
-    const thekadar = workerByName(input.thekadarName)
-    return patchPurchase(purchaseId, {
-        status: 'cutting',
-        machineId: machine.id,
-        machineName: machine.name,
-        thekadarId: thekadar.id,
-        thekadarName: thekadar.name,
-        cutStart: input.date,
-    })
-}
+export const sendToMachine = async (purchaseId: string, input: SendInput): Promise<Purchase> =>
+    remember(
+        await request<Purchase>(`${base}/trucks/${purchaseId}/send`, {
+            body: { machineId: input.machineId, thekadarName: input.thekadarName, date: input.date },
+        })
+    )
 
 /** At another cutting factory there is no machine: starting only sets `cutting`. */
-export const startAtOtherFactory = async (purchaseId: string, date: string): Promise<Purchase> => {
-    await delay()
-    const purchase = await purchaseOf(purchaseId)
-    if (purchase.status !== 'in_stock') throw new ApiError(409, { code: 'NOT_WAITING' })
-    assertDate(date, purchase.date)
-    return patchPurchase(purchaseId, { status: 'cutting', cutStart: date })
-}
+export const startAtOtherFactory = async (purchaseId: string, date: string): Promise<Purchase> =>
+    remember(await request<Purchase>(`${base}/trucks/${purchaseId}/start`, { body: { date } }))
 
 export type FinishInput = { date: string; ratePerTon: number }
 
@@ -203,52 +170,11 @@ export type FinishResult = { purchase: Purchase; paid: { to: string; amount: num
  * Other factory: `tons × that factory's rate` goes on the cutting factory's supplier khata.
  */
 export const finishCutting = async (purchaseId: string, input: FinishInput): Promise<FinishResult> => {
-    await delay()
-    const purchase = await purchaseOf(purchaseId)
-    if (purchase.status !== 'cutting' || !purchase.cutStart) throw new ApiError(409, { code: 'NOT_CUTTING' })
-    assertDate(input.date, purchase.cutStart)
-
-    const factories = await listFactories()
-    const factory = factories.find((f) => f.id === purchase.factoryId)
-
-    if (isOwnFactory(factories, purchase.factoryId)) {
-        const worker = purchase.thekadarId ? workerById(purchase.thekadarId) : undefined
-        if (!worker) throw new ApiError(409, { code: 'NO_THEKADAR' })
-        if (!(input.ratePerTon > 0)) throw new ApiError(400, { code: 'RATE_REQUIRED' })
-        const amount = Math.round(purchase.tons * input.ratePerTon)
-        postWorkEntry({
-            date: input.date,
-            workerId: worker.id,
-            workerName: worker.name,
-            job: `${purchase.machineName ?? ''} cutting`.trim(),
-            unit: 'ton',
-            qty: purchase.tons,
-            rate: input.ratePerTon,
-            amount,
-            sourceType: 'truck_cut',
-            sourceId: purchase.id,
-            auto: true,
-            createdBy: 'system',
-        })
-        const done = patchPurchase(purchaseId, { status: 'cut', cutEnd: input.date, cutRatePerTon: input.ratePerTon })
-        return { purchase: done, paid: { to: worker.name, amount, kind: 'thekadar' } }
-    }
-
-    const supplier = factory ? await findCuttingFactorySupplier(factory.name) : undefined
-    if (!factory || !supplier) throw new ApiError(409, { code: 'NO_CUTTING_SUPPLIER' })
-    const rate = factory.ratePerTon ?? supplier.cuttingRatePerTon ?? 0
-    if (!(rate > 0)) throw new ApiError(400, { code: 'RATE_REQUIRED' })
-    const amount = Math.round(purchase.tons * rate)
-    postSupplierEntry({
-        supplierId: supplier.id,
-        date: input.date,
-        kind: 'charge',
-        amount,
-        detail: `Cutting · truck ${purchase.mark} · ${purchase.tons} t × ${rate}`,
-        sourceId: `cut-${purchase.id}`,
+    const result = await request<FinishResult>(`${base}/trucks/${purchaseId}/finish`, {
+        body: { date: input.date, ratePerTon: input.ratePerTon > 0 ? input.ratePerTon : undefined },
     })
-    const done = patchPurchase(purchaseId, { status: 'cut', cutEnd: input.date, cutRatePerTon: rate })
-    return { purchase: done, paid: { to: supplier.name, amount, kind: 'cutting_factory' } }
+    remember(result.purchase)
+    return result
 }
 
 /** The Settings rate per ton for a cutting factory, shown in the finish dialog. */

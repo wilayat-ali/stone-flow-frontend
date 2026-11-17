@@ -15,7 +15,6 @@ import { purchasesQueryKey } from '@/features/purchases'
 import { cuttingFactoryRate, finishCutting, productionQueryKey, type OwnRow } from '@/features/production'
 import { suppliersQueryKey } from '@/features/suppliers'
 import { useProductionErrorMessage } from '@/features/use-production-error-message'
-import { workerById } from '@/features/workers'
 import { useMoney } from '@/hooks/use-money'
 import { todayIso } from '@/lib/format'
 
@@ -59,10 +58,9 @@ function FinishForm({
 
     const factories = useQuery({ queryKey: [factoriesQueryKey], queryFn: listFactories, enabled: other })
     const otherRate = other ? cuttingFactoryRate(factories.data ?? [], purchase.factoryId) : null
-    const thekadar = purchase.thekadarId ? workerById(purchase.thekadarId) : undefined
 
-    // The worker's own rate is the default; it can be changed for this truck.
-    const [rate, setRate] = useState(thekadar ? String(thekadar.rate) : '')
+    // The thekadar's own rate is the default; it can be changed for this truck.
+    const [rate, setRate] = useState(purchase.thekadarRate ? String(purchase.thekadarRate) : '')
     const [date, setDate] = useState(todayIso())
 
     const perTon = other ? (otherRate ?? 0) : Number(rate) || 0
@@ -112,7 +110,9 @@ function FinishForm({
                             inputMode="numeric"
                             aria-invalid={rateInvalid}
                         />
-                        {thekadar && <p className="text-muted-foreground text-xs">{t('finishDialog.workerRate', { name: thekadar.name })}</p>}
+                        {purchase.thekadarName && purchase.thekadarRate !== null && (
+                            <p className="text-muted-foreground text-xs">{t('finishDialog.workerRate', { name: purchase.thekadarName })}</p>
+                        )}
                     </div>
                 )}
                 <div className="flex flex-col gap-2">

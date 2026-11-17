@@ -18,7 +18,7 @@ import { factoriesQueryKey, listFactories } from '@/features/factories'
 import { inventoryQueryKey, listInventory, type InventoryRow } from '@/features/inventory'
 import { pieceSizes, sizeLabel, sootTypes, sqFtOfSize } from '@/features/piece-sizes'
 import { useTableLabels } from '@/features/resource-labels'
-import { listStockEntries, pendingStockEntries, stockEntriesQueryKey } from '@/features/stock-entries'
+import { listStockEntries, stockEntriesQueryKey } from '@/features/stock-entries'
 import { useMoney } from '@/hooks/use-money'
 import { cn } from '@/lib/utils'
 import { ItemPanel } from './item-panel'
@@ -37,7 +37,7 @@ const NO_FILTERS: Filters = { material: ALL, soot: ALL, finish: ALL, factoryId: 
  * Our own stock, view-only: pieces, counters and slabs, each one table and one filter row. Stock changes
  * only through production, sales and a Stock Entry (with a reason, and the owner's approval for a munshi).
  */
-export function InventoryPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function InventoryPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('inventory')
     const format = useFormatter()
     const money = useMoney()
@@ -55,8 +55,8 @@ export function InventoryPage({ roleKey, userName }: { roleKey: string; userName
 
     const inventory = useQuery({ queryKey: [inventoryQueryKey], queryFn: listInventory })
     const factories = useQuery({ queryKey: [factoriesQueryKey], queryFn: listFactories })
-    // Only to refresh the "to approve" count when entries change.
-    useQuery({ queryKey: [stockEntriesQueryKey, 'count'], queryFn: () => listStockEntries({ status: 'pending' }) })
+    // The "to approve" count; refreshed when entries change.
+    const pendingEntries = useQuery({ queryKey: [stockEntriesQueryKey, 'count'], queryFn: () => listStockEntries({ status: 'pending' }) })
 
     const all = inventory.data ?? []
     const factoryName = (id: string) => factories.data?.find((f) => f.id === id)?.name ?? id
@@ -66,7 +66,7 @@ export function InventoryPage({ roleKey, userName }: { roleKey: string; userName
     const counters = all.filter((r) => r.item.itemType === 'counter')
     const slabs = all.filter((r) => r.item.itemType === 'slab')
     const low = all.filter((r) => r.low)
-    const pendingCount = pendingStockEntries().length
+    const pendingCount = pendingEntries.data?.length ?? 0
     const knownValue = all.reduce((s, r) => s + (r.value ?? 0), 0)
 
     const sumSqft = (rows: InventoryRow[]) => rows.reduce((s, r) => s + r.sqft, 0)
@@ -327,7 +327,7 @@ export function InventoryPage({ roleKey, userName }: { roleKey: string; userName
                     }
                 />
             ) : tab === 'entries' ? (
-                <StockEntriesTab key={entriesStatus ?? 'all'} canApprove={canApprove} userName={userName} initialStatus={entriesStatus} />
+                <StockEntriesTab key={entriesStatus ?? 'all'} canApprove={canApprove} initialStatus={entriesStatus} />
             ) : tab === 'counters' ? (
                 table(counterColumns, counters)
             ) : tab === 'slabs' ? (
@@ -340,7 +340,7 @@ export function InventoryPage({ roleKey, userName }: { roleKey: string; userName
             )}
 
             <ItemPanel row={opened} canViewValue={canViewValue} canSetAlert={canEnter} onClose={() => setOpenKey(null)} />
-            <StockEntryDialog open={entryOpen} roleKey={roleKey} userName={userName} onClose={() => setEntryOpen(false)} />
+            <StockEntryDialog open={entryOpen} roleKey={roleKey} onClose={() => setEntryOpen(false)} />
         </div>
     )
 }

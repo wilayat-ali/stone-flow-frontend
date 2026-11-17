@@ -32,7 +32,7 @@ import {
     type CuttingStatus,
 } from '@/features/production'
 import { purchasesQueryKey } from '@/features/purchases'
-import { shortOrderLines } from '@/features/sales'
+import { listOrders, ordersQueryKey, shortOrderLines } from '@/features/sales'
 import { useItemText } from '@/components/inventory/use-item-text'
 import { useTableLabels } from '@/features/resource-labels'
 import { useProductionErrorMessage } from '@/features/use-production-error-message'
@@ -57,7 +57,7 @@ type Tab = 'cutting' | 'customers' | 'log'
  * oldest first. The Action column has Send (or Start at another factory), Finish and, for a
  * customer's cut truck, Delivered.
  */
-export function ProductionPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function ProductionPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('production')
     const tm = useTranslations('settings.machines.type')
     const format = useFormatter()
@@ -147,7 +147,9 @@ export function ProductionPage({ roleKey, userName }: { roleKey: string; userNam
     })
 
     // Open orders that have more stone ordered than is ready: Production is asked to make the rest.
-    const shortOrders = shortOrderLines()
+    // The orders come from Sales; someone without access to Sales simply sees none.
+    const orders = useQuery({ queryKey: [ordersQueryKey, 'all'], queryFn: () => listOrders(), retry: false })
+    const shortOrders = orders.data ? shortOrderLines() : []
     const rows = all.data ?? []
     const waiting = rows.filter((r) => r.status === 'waiting')
     const cutting = rows.filter((r) => r.status === 'cutting')
@@ -528,17 +530,15 @@ export function ProductionPage({ roleKey, userName }: { roleKey: string; userNam
             <ReceivePaymentSheet
                 open={receivePay !== null}
                 onOpenChange={(open) => !open && setReceivePay(null)}
-                userName={userName}
                 preset={receivePay ? { customerId: receivePay } : undefined}
             />
             <ReceiveJobSheet
                 open={receive !== null}
                 onOpenChange={(open) => !open && setReceive(null)}
                 customerId={receive?.customerId}
-                userName={userName}
             />
 
-            <EntryDialog open={entry !== null} preset={entry ?? {}} userName={userName} onClose={() => setEntry(null)} />
+            <EntryDialog open={entry !== null} preset={entry ?? {}} onClose={() => setEntry(null)} />
 
             <ConfirmDialog
                 open={!!starting}

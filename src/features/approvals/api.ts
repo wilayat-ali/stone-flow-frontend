@@ -37,8 +37,8 @@ export const approvalsKey = ['approvals'] as const
 export const approvalsListKey = (filters: ApprovalFilters) => [...approvalsKey, 'list', filters] as const
 export const pendingCountKey = [...approvalsKey, 'pending-count'] as const
 
-// The backend serves approvals under Cash & Bank for now; a generic /approvals comes with 03c.
-const base = '/api/cash-bank/approvals'
+// One inbox over every module: the backend hands each decision to the module that owns the record.
+const base = '/api/approvals'
 
 const query = (params: Record<string, string | number | undefined>) => {
     const search = new URLSearchParams()

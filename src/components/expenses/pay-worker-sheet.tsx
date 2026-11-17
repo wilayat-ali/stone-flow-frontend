@@ -8,7 +8,6 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { DateField, SelectField, TextField } from '@/components/shared/form-fields'
 import { FormSheet } from '@/components/shared/form-sheet'
-import { companySettingsKey, getCompanySettings } from '@/features/company-settings'
 import { expensesQueryKey, munshiCashQueryKey } from '@/features/expenses'
 import { useExpenseErrorMessage } from '@/features/use-expense-error-message'
 import { listWorkers, workerKhataQueryKey } from '@/features/worker-khata'
@@ -40,13 +39,11 @@ export function PayWorkerSheet({
     open,
     onOpenChange,
     roleKey,
-    userName,
     preset = NO_PRESET,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     roleKey: string
-    userName: string
     preset?: PayWorkerPreset
 }) {
     const t = useTranslations('expenses.payWorker')
@@ -61,7 +58,6 @@ export function PayWorkerSheet({
     const form = useForm<PayWorkerValues>({ resolver: zodResolver(schema), defaultValues: emptyValues(roleKey, preset, munshi.id) })
 
     const workers = useQuery({ queryKey: [workersQueryKey, 'summaries'], queryFn: () => listWorkers(), enabled: open })
-    const settings = useQuery({ queryKey: companySettingsKey, queryFn: getCompanySettings })
 
     useEffect(() => {
         if (open) form.reset(emptyValues(roleKey, preset, munshi.id))
@@ -82,13 +78,10 @@ export function PayWorkerSheet({
                 {
                     date: values.date,
                     workerId: values.workerId,
-                    workerName: worker?.name ?? '',
                     amount: Number(values.amount),
                     accountId: values.accountId,
-                    accountName: payAccounts.find((a) => a.id === values.accountId)?.name ?? '',
                     note: values.note,
-                },
-                { pending: roleKey === 'munshi' && (settings.data?.approvalRequired ?? true), by: userName }
+                }
             ),
         onSuccess: (payment) => {
             toast.success(payment.status === 'pending' ? t('savedPending') : t('saved'))

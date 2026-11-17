@@ -12,13 +12,29 @@ import {
     WORKSPACE_COOKIE,
 } from '@/config/auth'
 import { api } from '@/lib/api'
+import { setSessionCookies } from '@/lib/session-cookies'
+import { refreshSession } from '@/lib/session-refresh'
+import { tokenExpiresWithin } from '@/lib/token-refresh'
 import { cookieOptions, REMEMBER_COMPANY, rememberCompanyTheme } from './login'
 import { listWorkspaces } from '@/features/workspace/data'
+
+/** The access token, renewed first if it has expired (a Server Action can set cookies, a page cannot). */
+async function freshToken(store: Awaited<ReturnType<typeof cookies>>): Promise<string | undefined> {
+    const token = store.get(TOKEN_COOKIE)?.value
+    const refreshToken = store.get(REFRESH_COOKIE)?.value
+    if (!refreshToken || !tokenExpiresWithin(token, 20_000)) return token
+    const outcome = await refreshSession(refreshToken)
+    if (outcome.ok) {
+        setSessionCookies(store, outcome.tokens)
+        return outcome.tokens.token
+    }
+    return outcome.definitive ? undefined : token
+}
 
 /** Switch the active company (POST /auth/switch-company) and remember it. */
 export async function selectWorkspaceAction(id: string): Promise<boolean> {
     const store = await cookies()
-    const token = store.get(TOKEN_COOKIE)?.value
+    const token = await freshToken(store)
     if (!token) return false
 
     const result = await api<{ token: string; tokenExpires: number }>('/auth/switch-company', {
@@ -27,10 +43,8 @@ export async function selectWorkspaceAction(id: string): Promise<boolean> {
     })
     if (!result.ok) return false
 
-    store.set(TOKEN_COOKIE, result.data.token, {
-        ...cookieOptions,
-        expires: new Date(result.data.tokenExpires),
-    })
+    // The refresh token is unchanged: the backend keeps the new company on the session it belongs to.
+    setSessionCookies(store, { token: result.data.token })
     store.set(WORKSPACE_COOKIE, id, cookieOptions)
     const workspace = (await listWorkspaces()).find((w) => w.id === id)
     if (workspace) store.set(COMPANY_COOKIE, workspace.slug, REMEMBER_COMPANY)

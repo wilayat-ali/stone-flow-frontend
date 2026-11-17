@@ -1371,6 +1371,7 @@
             "NO_THEKADAR": "This truck has no thekadar.",
             "RATE_REQUIRED": "Enter the rate per ton.",
             "NO_CUTTING_SUPPLIER": "This factory has no cutting-factory supplier with the same name. Add one under Suppliers.",
+            "NOT_OTHER_FACTORY": "Only a truck at another cutting factory can be started this way. Send it to a machine instead.",
             "notFound": "That truck could not be found. Refresh and try again.",
             "SQFT_REQUIRED": "Enter the sq.ft that came out.",
             "NOT_READY": "This truck is not ready to collect. Refresh the list.",
@@ -1788,7 +1789,15 @@
             "NOTE_REQUIRED": "Write what happened.",
             "SAME_FACTORY": "Choose a different factory to transfer to.",
             "ALREADY_DECIDED": "Someone already decided this. Refresh the list.",
-            "notFound": "That entry could not be found. Refresh and try again."
+            "notFound": "That entry could not be found. Refresh and try again.",
+            "futureDate": "The date cannot be in the future.",
+            "required": "Fill in everything that is needed: the reason, the note or the total inches.",
+            "sameFactory": "Choose a different own factory to transfer to.",
+            "invalid": "Choose an own factory that is in use.",
+            "unknown": "That soot or width is not in Settings.",
+            "invalidSize": "Write the size as width x length, for example 12x24.",
+            "onlyForCounters": "Inches are only for counters.",
+            "Forbidden": "You are not allowed to do this."
         }
     },
     "customers": {
@@ -1889,6 +1898,8 @@
         "errors": {
             "generic": "Something went wrong. Nothing was saved.",
             "DUPLICATE_PHONE": "A customer with this phone number already exists.",
+            "OPENING_NOT_ALLOWED": "Only the owner or a partner can set an opening balance.",
+            "CUSTOMER_CREATE_NOT_ALLOWED": "You are not allowed to add customers.",
             "notFound": "That customer could not be found. Refresh and try again."
         }
     },
@@ -2156,7 +2167,11 @@
             "ALREADY_DECIDED": "This cheque was already cleared or bounced. Refresh the list.",
             "ALREADY_REVERSED": "This payment was already reversed.",
             "ALREADY_RETURNED": "This cheque bounced, so it is already back on the khata.",
-            "BEFORE_RECEIVED": "The cleared date is before the cheque was received."
+            "BEFORE_RECEIVED": "The cleared date is before the cheque was received.",
+            "BANK_ACCOUNT_NOT_ALLOWED": "You can only take cash. Ask the owner or a manager for bank money.",
+            "ACCOUNT_INACTIVE": "That account is not in use any more. Choose another.",
+            "DUPLICATE_LINE": "Two lines have the same number. Refresh and try again.",
+            "CUSTOMER_CREATE_NOT_ALLOWED": "You are not allowed to add customers. Choose one from the list."
         },
         "newOrder": "New order",
         "tabs": {
@@ -2494,7 +2509,9 @@
             "ALREADY_CLOSED": "This month is already closed.",
             "NOT_CLOSED": "This month is not closed.",
             "INSTALMENT_REQUIRED": "Enter the monthly instalment.",
-            "PRIOR_TOO_HIGH": "The amount already repaid must be less than the loan."
+            "PRIOR_TOO_HIGH": "The amount already repaid must be less than the loan.",
+            "BANK_ACCOUNT_NOT_ALLOWED": "You can only use cash for this. Ask the owner or a manager for bank money.",
+            "ACCOUNT_INACTIVE": "That account is not in use any more. Choose another."
         },
         "payWorker": {
             "open": "Pay worker",

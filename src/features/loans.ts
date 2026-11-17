@@ -1,10 +1,8 @@
-import { ApiError } from '@/lib/client-api'
-import { setExtraOutflow } from './account-outflow'
-import { closedRecord, isMonthClosed } from './month-store'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { request } from '@/lib/client-api'
 
 export const loansQueryKey = 'loans'
+
+const base = '/api/loans'
 
 export type Loan = {
     id: string
@@ -39,123 +37,64 @@ export type LoanSummary = Loan & {
 
 export type LoanInput = Pick<Loan, 'workerId' | 'workerName' | 'date' | 'amount' | 'monthlyInstalment' | 'firstMonth' | 'priorRepaid' | 'accountId' | 'accountName' | 'reason'>
 
-/** The owner's change for one month before it is closed: a different amount, or skip it. */
-type Override = { loanId: string; month: string; amount?: number; skip?: boolean }
-
-const today = () => new Date().toISOString().slice(0, 10)
+/** The loans the backend gave last, for the figures the screens read at once. */
+let known: LoanSummary[] = []
 
 const nextMonth = (month: string) => {
     const [y, m] = month.split('-').map(Number)
     return new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7)
 }
 
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-let loans: Loan[] = [
-    {
-        id: 'ln1',
-        workerId: 'w-karim',
-        workerName: 'Karim',
-        date: '2026-10-05',
-        amount: 30000,
-        monthlyInstalment: 5000,
-        firstMonth: '2026-11',
-        priorRepaid: 0,
-        accountId: '',
-        accountName: 'Cash in hand',
-        reason: 'Family wedding',
-    },
-]
-let overrides: Override[] = []
-
 /**
- * The schedule: one instalment per month from the first month until the loan is repaid, the last one
- * smaller if it needs to be. A skipped month moves everything one month later; a closed month shows what
- * was really deducted.
+ * The schedule the form previews before saving: one instalment per month, the last one smaller if it needs
+ * to be. The real schedule (with closed months and the owner's changes) comes from the backend.
  */
-export const scheduleOf = (loan: Loan): InstalmentRow[] => {
+export const previewSchedule = (loan: Pick<Loan, 'amount' | 'monthlyInstalment' | 'firstMonth' | 'priorRepaid'>): InstalmentRow[] => {
     const rows: InstalmentRow[] = []
     let remaining = loan.amount - loan.priorRepaid
     let month = loan.firstMonth
     for (let i = 0; i < 240 && remaining > 0 && loan.monthlyInstalment > 0; i++, month = nextMonth(month)) {
-        if (isMonthClosed(month)) {
-            const posted = closedRecord(month)?.postings.flatMap((p) => p.instalments).find((x) => x.loanId === loan.id)
-            const amount = posted && !posted.skipped ? posted.amount : 0
-            rows.push({ month, amount, status: amount > 0 ? 'deducted' : 'skipped' })
-            remaining -= amount
-            continue
-        }
-        const change = overrides.find((o) => o.loanId === loan.id && o.month === month)
-        if (change?.skip) {
-            rows.push({ month, amount: 0, status: 'skipped' })
-            continue
-        }
-        const amount = Math.min(change?.amount ?? loan.monthlyInstalment, remaining)
+        const amount = Math.min(loan.monthlyInstalment, remaining)
         rows.push({ month, amount, status: 'scheduled' })
         remaining -= amount
     }
     return rows
 }
 
-const summarise = (loan: Loan): LoanSummary => {
-    const schedule = scheduleOf(loan)
-    const deducted = schedule.filter((r) => r.status === 'deducted').reduce((s, r) => s + r.amount, 0)
-    const outstanding = loan.amount - loan.priorRepaid - deducted
-    const last = [...schedule].reverse().find((r) => r.amount > 0)
-    return { ...loan, schedule, deducted, outstanding, status: outstanding > 0 ? 'active' : 'repaid', endMonth: last?.month ?? null }
-}
-
-/** One loan with its schedule, as the form previews it before saving. */
-export const previewSchedule = (loan: Pick<Loan, 'amount' | 'monthlyInstalment' | 'firstMonth' | 'priorRepaid'>) =>
-    scheduleOf({ ...loan, id: 'preview', workerId: '', workerName: '', date: '', accountId: '', accountName: '', reason: '' })
-
+/** Loans of a worker (or all), with their schedules, from the backend. */
 export const listLoans = async (workerId?: string): Promise<LoanSummary[]> => {
-    await delay(250)
-    return loansOf(workerId)
+    const rows = await request<LoanSummary[]>(`${base}${workerId ? `?workerId=${workerId}` : ''}`)
+    if (!workerId) known = rows
+    return rows
 }
 
-export const loansOf = (workerId?: string) => loans.filter((l) => !workerId || l.workerId === workerId).map(summarise)
+/** The loans of a worker from the last list loaded. */
+export const loansOf = (workerId?: string) => known.filter((l) => !workerId || l.workerId === workerId)
 
-/** What a worker is to repay in a month (scheduled or already deducted), for the month-end sheet. */
-export const instalmentFor = (workerId: string, month: string) =>
-    loansOf(workerId)
-        .flatMap((l) => l.schedule.filter((r) => r.month === month).map((r) => ({ loanId: l.id, amount: r.amount, skipped: r.status === 'skipped' })))
-
-/** What he still has to repay, across his loans. */
+/** What he still has to repay, across his loans (from the last list loaded). */
 export const loanOutstanding = (workerId: string) => loansOf(workerId).reduce((s, l) => s + l.outstanding, 0)
 
 /** Money leaves an account now, unless the loan was given before StoneFlow (no account). */
-export const giveLoan = async (input: LoanInput): Promise<Loan> => {
-    await delay()
-    if (!(input.amount > 0)) throw new ApiError(400, { code: 'INVALID_AMOUNT' })
-    if (!(input.monthlyInstalment > 0)) throw new ApiError(400, { code: 'INSTALMENT_REQUIRED' })
-    if (input.priorRepaid < 0 || input.priorRepaid >= input.amount) throw new ApiError(400, { code: 'PRIOR_TOO_HIGH' })
-    if (input.date > today()) throw new ApiError(400, { code: 'FUTURE_DATE' })
-    if (isMonthClosed(input.firstMonth)) throw new ApiError(409, { code: 'MONTH_CLOSED' })
-    const loan: Loan = { ...input, id: crypto.randomUUID() }
-    loans = [...loans, loan]
-    if (loan.accountId) setExtraOutflow(loan.id, loan.accountId, loan.amount)
-    return loan
-}
+export const giveLoan = (input: LoanInput) =>
+    request<LoanSummary>(base, {
+        body: {
+            workerId: input.workerId,
+            date: input.date,
+            amount: input.amount,
+            monthlyInstalment: input.monthlyInstalment,
+            firstMonth: input.firstMonth,
+            priorRepaid: input.priorRepaid,
+            accountId: input.accountId || undefined,
+            reason: input.reason || undefined,
+        },
+    })
 
 /** Change one month's instalment (or skip it) before that month is closed. */
-export const changeInstalment = async (loanId: string, month: string, change: { amount: number } | { skip: true }): Promise<void> => {
-    await delay()
-    const loan = loans.find((l) => l.id === loanId)
-    if (!loan) throw new ApiError(404, { code: 'notFound' })
-    if (isMonthClosed(month)) throw new ApiError(409, { code: 'MONTH_CLOSED' })
-    if ('amount' in change && !(change.amount > 0)) throw new ApiError(400, { code: 'INVALID_AMOUNT' })
-    overrides = [...overrides.filter((o) => !(o.loanId === loanId && o.month === month)), { loanId, month, ...change }]
-}
+export const changeInstalment = (loanId: string, month: string, change: { amount: number } | { skip: true }) =>
+    request<LoanSummary>(`${base}/${loanId}/months/${month}`, { method: 'PUT', body: change })
 
 /** Back to the regular instalment for a month. */
-export const resetInstalment = async (loanId: string, month: string): Promise<void> => {
-    await delay()
-    if (isMonthClosed(month)) throw new ApiError(409, { code: 'MONTH_CLOSED' })
-    overrides = overrides.filter((o) => !(o.loanId === loanId && o.month === month))
-}
-
-// The seeded loan was already paid out of cash.
-for (const l of loans) if (l.accountId) setExtraOutflow(l.id, l.accountId, l.amount)
+export const resetInstalment = (loanId: string, month: string) => request<LoanSummary>(`${base}/${loanId}/months/${month}`, { method: 'DELETE' })
 
 /** This month and the next ones, for choosing when instalments start. */
 export const upcomingMonths = (count: number): string[] => {

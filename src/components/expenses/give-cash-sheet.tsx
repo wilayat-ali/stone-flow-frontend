@@ -29,11 +29,9 @@ const emptyValues = (amount?: number): GiveCashValues => ({
 export function GiveCashSheet({
     open,
     onOpenChange,
-    userName,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    userName: string
 }) {
     const t = useTranslations('expenses.give')
     const tc = useTranslations('common')
@@ -64,12 +62,10 @@ export function GiveCashSheet({
             giveCashToMunshi(
                 {
                     fromAccountId: values.fromAccountId,
-                    fromAccountName: accounts.find((a) => a.id === values.fromAccountId)?.name ?? '',
                     amount: Number(values.amount),
                     date: values.date,
                     note: values.note,
-                },
-                userName
+                }
             ),
         onSuccess: () => {
             toast.success(t('saved'))

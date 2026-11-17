@@ -49,12 +49,10 @@ const emptyValues = (preset: ReceivePreset): ReceivePaymentValues => ({
 export function ReceivePaymentSheet({
     open,
     onOpenChange,
-    userName,
     preset = NO_PRESET,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    userName: string
     preset?: ReceivePreset
 }) {
     const t = useTranslations('sales.receive')
@@ -108,17 +106,13 @@ export function ReceivePaymentSheet({
                     amount: Number(values.amount),
                     method: values.method,
                     accountId: values.accountId,
-                    accountName: accounts.data?.find((a) => a.id === values.accountId)?.name ?? '',
                     bankName: values.bankName,
                     chequeNo: values.chequeNo,
                     chequeDate: values.chequeDate,
                     note: values.note,
                     billId: preset.billId,
-                    billNo: preset.billNo,
                     orderId: preset.orderId,
-                    orderNo: preset.orderNo,
-                },
-                userName
+                }
             ),
         onSuccess: ({ advance }) => {
             toast.success(advance > 0 ? t('savedAdvance', { amount: money(advance) }) : t('saved'))

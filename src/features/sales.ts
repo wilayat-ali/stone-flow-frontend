@@ -1,12 +1,13 @@
-import { ApiError } from '@/lib/client-api'
-import { advancePaymentsFor, noteReceipt } from './customer-payments'
-import { createCustomer, customerAllocation, customerBalance, customerById, postCustomerEntry, type CustomerType } from './customers'
+import { request } from '@/lib/client-api'
+import { customerBalance, type CustomerType } from './customers'
 import { sqFtOfSize } from './piece-sizes'
-import { itemKeyOf, postMovement, stockOnHand, type EntryLine, type StockItem } from './production-entries'
-
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
+import { itemKeyOf, stockOnHand, type StockItem } from './production-entries'
+import { loadRealStock } from './stock/real-stock'
 
 export const billsQueryKey = 'bills'
+
+const billsBase = '/api/bills'
+const ordersBase = '/api/sales-orders'
 
 /** One item on a bill. The rate is typed every time, because the price is agreed with each customer. */
 export type BillLine = {
@@ -67,6 +68,8 @@ export type Bill = {
     payments: BillPayment[]
     log: BillLog[]
     createdBy: string
+    /** What the customer's payments have covered of this bill, oldest bill first (worked out by the backend). */
+    paid: number
 }
 
 /** Pieces are priced per sq.ft, counters per inch, slabs per ton. */
@@ -90,90 +93,11 @@ export const subtotalOf = (lines: BillLine[]) => lines.reduce((s, l) => s + line
 /** Total = Σ lines − discount + transport. */
 export const totalOf = (lines: BillLine[], discount: number, transport: number) => subtotalOf(lines) - discount + transport
 
-const today = () => new Date().toISOString().slice(0, 10)
-
-// ---------- seed ----------
-const zw = (soot: string, size: string, finish: 'polished' | 'unpolished' = 'unpolished'): StockItem => ({
-    itemType: 'piece',
-    material: 'Ziarat White',
-    factoryId: 'main',
-    soot,
-    size,
-    finish,
-})
-
-const seedLine = (lineNo: number, item: StockItem, qty: number, rate: number): BillLine => ({ lineNo, item, qty, inches: 0, tons: 0, rate, orderLineId: null })
-
-// In-memory stand-in for the backend; replace with `request()` calls like `features/admin/members.ts`.
-// B-0001's charge is already in ABC Builders' khata and its stone (G-001) already left the yard (seeded
-// elsewhere); B-0002 is booked for Madina Tiles and waits to be collected.
-let bills: Bill[] = [
-    {
-        id: 'b1',
-        billNo: 'B-0001',
-        date: '2026-09-28',
-        customerId: 'c4',
-        customerName: 'ABC Builders',
-        customerPhone: '0300-2145678',
-        factoryId: 'main',
-        factoryName: 'Saadat Marble — Main Factory',
-        lines: [seedLine(1, zw('14', '12x24'), 40, 190)],
-        discount: 0,
-        transport: 0,
-        total: 15200,
-        status: 'active',
-        orderId: null,
-        note: '',
-        cancelReason: null,
-        collections: [{ id: 'g1', collNo: 'G-001', date: '2026-09-28', vehicle: 'Suzuki KHI-2231', receivedBy: '', lines: [{ lineNo: 1, qty: 40, inches: 0 }], createdBy: 'Rashid Khan' }],
-        payments: [{ id: 'bp1', date: '2026-09-28', amount: 10000, method: 'cash', accountName: '' }],
-        log: [
-            { date: '2026-09-28', text: 'Bill made', by: 'Rashid Khan' },
-            { date: '2026-09-28', text: 'All stone collected · Suzuki KHI-2231', by: 'Rashid Khan' },
-        ],
-        createdBy: 'Rashid Khan',
-    },
-    {
-        id: 'b2',
-        billNo: 'B-0002',
-        date: '2026-10-03',
-        customerId: 'c6',
-        customerName: 'Madina Tiles & Marble',
-        customerPhone: '0345-7712093',
-        factoryId: 'main',
-        factoryName: 'Saadat Marble — Main Factory',
-        lines: [seedLine(1, zw('14', '12x24'), 60, 470)],
-        discount: 0,
-        transport: 0,
-        total: 56400,
-        status: 'active',
-        orderId: null,
-        note: 'Delivery on Thursday',
-        cancelReason: null,
-        collections: [],
-        payments: [],
-        log: [{ date: '2026-10-03', text: 'Bill made', by: 'Rashid Khan' }],
-        createdBy: 'Rashid Khan',
-    },
-]
-
-let billSeq = 2
-let collSeq = 1
-let paySeq = 1
-let version = 0
+/** The last lists the backend gave, for the figures the screens work out at once (reserved stone, order progress). */
+let bills: Bill[] = []
+let orders: SalesOrder[] = []
 
 export const allBills = () => bills
-
-const find = (id: string) => {
-    const bill = bills.find((b) => b.id === id)
-    if (!bill) throw new ApiError(404, { code: 'notFound' })
-    return bill
-}
-
-const replace = (next: Bill) => {
-    bills = bills.map((b) => (b.id === next.id ? next : b))
-    return next
-}
 
 // ---------- what has left, what is booked ----------
 
@@ -210,7 +134,7 @@ export const reservedFor = (item: StockItem, exceptBillId?: string) => {
     for (const bill of bills) {
         if (bill.status !== 'active' || bill.id === exceptBillId) continue
         for (const line of bill.lines) {
-            if (itemKeyOf(line.item) !== key) continue
+            if (itemKeyOf({ ...line.item, factoryId: item.factoryId }) !== key) continue
             const r = remainingOf(bill, line)
             qty += r.qty
             inches += r.inches
@@ -228,39 +152,33 @@ export const availableFor = (item: StockItem, exceptBillId?: string) => {
 
 // ---------- money ----------
 
-/** Paid / Partly paid / Udhaar, from the customer's FIFO allocation (an advance covers later bills). */
+/** Paid / Partly paid / Udhaar, from what the customer's payments have covered (an advance covers later bills). */
 export type PaymentState = 'paid' | 'partly' | 'udhaar' | 'cancelled'
 
 export const paymentInfo = (bill: Bill): { state: PaymentState; paid: number; due: number } => {
     if (bill.status === 'cancelled') return { state: 'cancelled', paid: 0, due: 0 }
-    if (bill.customerId) {
-        const alloc = customerAllocation(bill.customerId).get(bill.id)
-        const paid = alloc?.paid ?? 0
-        const due = Math.max(0, bill.total - paid)
-        return { state: due <= 0 ? 'paid' : paid <= 0 ? 'udhaar' : 'partly', paid, due }
-    }
-    // A walk-in has no khata: only what was paid on the bill counts.
-    const paid = bill.payments.reduce((s, p) => s + p.amount, 0)
+    const paid = bill.paid
     const due = Math.max(0, bill.total - paid)
     return { state: due <= 0 ? 'paid' : paid <= 0 ? 'udhaar' : 'partly', paid, due }
 }
 
 export type BillFilters = { payment?: PaymentState; collect?: 'to' | 'done' }
 
+/** Newest first. Every bill is fetched (and remembered); the filters narrow the list. Stock is refreshed too. */
 export const listBills = async (filters: BillFilters = {}): Promise<Bill[]> => {
-    await delay()
-    return bills
-        .filter(
-            (b) =>
-                (!filters.payment || paymentInfo(b).state === filters.payment) &&
-                (!filters.collect || (filters.collect === 'to' ? toCollect(b) : b.status === 'active' && !toCollect(b)))
-        )
-        .sort((a, b) => b.date.localeCompare(a.date) || b.billNo.localeCompare(a.billNo))
+    const [all] = await Promise.all([request<Bill[]>(billsBase), loadRealStock()])
+    bills = all
+    return all.filter(
+        (b) =>
+            (!filters.payment || paymentInfo(b).state === filters.payment) &&
+            (!filters.collect || (filters.collect === 'to' ? toCollect(b) : b.status === 'active' && !toCollect(b)))
+    )
 }
 
 // ---------- making and changing a bill ----------
 
-export type PaymentInput = { method: 'none' | 'cash' | 'bank'; amount: number; accountName: string }
+/** `accountId` is the bank account; cash goes into the cash in hand. */
+export type PaymentInput = { method: 'none' | 'cash' | 'bank'; amount: number; accountId?: string }
 
 export type BillInput = {
     /** An existing customer id, `walkin`, or `new` (created with the name and phone below). */
@@ -270,7 +188,6 @@ export type BillInput = {
     customerType: CustomerType
     date: string
     factoryId: string
-    factoryName: string
     lines: BillLine[]
     discount: number
     transport: number
@@ -281,242 +198,72 @@ export type BillInput = {
     takeAll: boolean
 }
 
-/** Bills only need to be valid lines with stock for what has not been collected yet. */
-const validateLines = (lines: BillLine[], factoryId: string, exceptBillId?: string, bill?: Bill) => {
-    if (lines.length === 0) throw new ApiError(400, { code: 'NO_LINES' })
-    // A bill line that fills an order line cannot go above what remains on the order.
-    for (const line of lines) {
-        const target = line.orderLineId ? orders.flatMap((o) => o.lines).find((l) => l.id === line.orderLineId) : undefined
-        if (target && line.qty > orderRemaining(target, exceptBillId).qty) {
-            throw new ApiError(409, { code: 'MORE_THAN_ORDER_REMAINING', remaining: orderRemaining(target, exceptBillId).qty })
-        }
-    }
-    const need = new Map<string, { item: StockItem; qty: number; inches: number }>()
-    for (const line of lines) {
-        if (!(line.qty > 0)) throw new ApiError(400, { code: 'QTY_REQUIRED' })
-        if (!(line.rate > 0)) throw new ApiError(400, { code: 'RATE_REQUIRED' })
-        if (line.item.itemType === 'counter' && !(line.inches > 0)) throw new ApiError(400, { code: 'INCHES_REQUIRED' })
-        if (line.item.itemType === 'slab' && !(line.tons > 0)) throw new ApiError(400, { code: 'TONS_REQUIRED' })
-        const got = bill ? collectedOf(bill, line.lineNo) : { qty: 0, inches: 0 }
-        if (bill && (line.qty < got.qty || (line.item.itemType === 'counter' && line.inches < got.inches))) {
-            throw new ApiError(409, { code: 'BELOW_COLLECTED', collected: got.qty })
-        }
-        // Stone already collected has left the yard; only the rest needs to be available.
-        const key = itemKeyOf({ ...line.item, factoryId })
-        const cur = need.get(key) ?? { item: { ...line.item, factoryId }, qty: 0, inches: 0 }
-        cur.qty += line.qty - got.qty
-        cur.inches += line.inches - got.inches
-        need.set(key, cur)
-    }
-    for (const n of need.values()) {
-        const avail = availableFor(n.item, exceptBillId)
-        if (n.qty > avail.qty) throw new ApiError(409, { code: 'NOT_AVAILABLE', available: Math.max(0, avail.qty) })
-        if (n.item.itemType === 'counter' && n.inches > avail.inches) throw new ApiError(409, { code: 'NOT_AVAILABLE_INCHES', available: Math.max(0, avail.inches) })
-    }
-}
+const lineBody = (l: BillLine, factoryId: string) => ({
+    lineNo: l.lineNo,
+    item: { ...l.item, factoryId },
+    qty: l.qty,
+    inches: l.item.itemType === 'counter' ? l.inches : undefined,
+    tons: l.item.itemType === 'slab' ? l.tons : undefined,
+    rate: l.rate,
+    orderLineId: l.orderLineId ?? undefined,
+})
 
-const postCharge = (bill: Bill, amount: number, note: string) => {
-    if (!bill.customerId) return
-    version += 1
-    postCustomerEntry({
-        customerId: bill.customerId,
-        date: bill.date,
-        kind: 'charge',
-        amount,
-        detail: `Bill ${bill.billNo}${note}`,
-        sourceId: `bill-${bill.id}-c${version}`,
-        ref: bill.id,
-    })
-}
+const paymentBody = (p: PaymentInput) => (p.method === 'none' || !(p.amount > 0) ? undefined : { method: p.method, amount: p.amount, accountId: p.accountId || undefined })
 
-const postReversal = (bill: Bill, amount: number, what: string) => {
-    if (!bill.customerId) return
-    version += 1
-    postCustomerEntry({
-        customerId: bill.customerId,
-        date: today(),
-        kind: 'credit',
-        amount,
-        detail: `Bill ${bill.billNo} ${what}`,
-        sourceId: `bill-${bill.id}-r${version}`,
-        ref: bill.id,
-        reversal: true,
-    })
-}
-
-const postPayment = (bill: Bill, payment: BillPayment) => {
-    noteReceipt({
-        id: payment.id,
-        date: payment.date,
-        customerId: bill.customerId,
-        customerName: bill.customerName,
-        amount: payment.amount,
-        method: payment.method,
-        accountName: payment.accountName,
-        billId: bill.id,
-        billNo: bill.billNo,
-        by: bill.createdBy,
-    })
-    if (!bill.customerId) return
-    postCustomerEntry({
-        customerId: bill.customerId,
-        date: payment.date,
-        kind: 'credit',
-        amount: payment.amount,
-        detail: `Payment received · ${payment.method === 'cash' ? 'cash' : `bank${payment.accountName ? ` · ${payment.accountName}` : ''}`} · ${bill.billNo}`,
-        sourceId: payment.id,
-    })
-}
-
-const toMovement = (bill: Bill, c: Collection): void => {
-    const lines: EntryLine[] = c.lines.map((l) => {
-        const line = bill.lines.find((x) => x.lineNo === l.lineNo)!
-        return { direction: 'in', item: { ...line.item, factoryId: bill.factoryId }, qty: l.qty, inches: l.inches }
-    })
-    postMovement({ id: c.id, date: c.date, entryNo: c.collNo, lines, source: 'sale' })
-}
-
-export const createBill = async (input: BillInput, by: string): Promise<Bill> => {
-    await delay()
-    if (input.date > today()) throw new ApiError(400, { code: 'DATE_IN_FUTURE' })
-    const lines = input.lines.map((l, i) => ({ ...l, lineNo: i + 1, item: { ...l.item, factoryId: input.factoryId } }))
-    validateLines(lines, input.factoryId)
-    const total = totalOf(lines, input.discount, input.transport)
-    if (!(total > 0)) throw new ApiError(400, { code: 'TOTAL_REQUIRED' })
-
+export const createBill = async (input: BillInput): Promise<Bill> => {
     const walkin = input.customerId === 'walkin'
-    const paid = input.payment.method === 'none' ? 0 : input.payment.amount
-    if (input.payment.method !== 'none' && !(paid > 0)) throw new ApiError(400, { code: 'PAYMENT_AMOUNT' })
-    // A walk-in has no khata to owe into, so the whole bill is paid now.
-    if (walkin && paid < total) throw new ApiError(400, { code: 'WALKIN_FULL_PAYMENT' })
-
-    let customerId: string | null = null
-    let customerName = input.name
-    let customerPhone = input.phone
-    if (!walkin) {
-        const customer = input.customerId === 'new' ? await createCustomer({ name: input.name, phone: input.phone, type: input.customerType, city: '', contactPerson: '' }) : customerById(input.customerId)
-        if (!customer) throw new ApiError(404, { code: 'notFound' })
-        customerId = customer.id
-        customerName = customer.name
-        customerPhone = customer.phone
-    }
-
-    billSeq += 1
-    const bill: Bill = {
-        id: crypto.randomUUID(),
-        billNo: `B-${String(billSeq).padStart(4, '0')}`,
-        date: input.date,
-        customerId,
-        customerName,
-        customerPhone,
-        factoryId: input.factoryId,
-        factoryName: input.factoryName,
-        lines,
-        discount: input.discount,
-        transport: input.transport,
-        total,
-        status: 'active',
-        orderId: input.orderId,
-        note: input.note,
-        cancelReason: null,
-        collections: [],
-        payments: [],
-        log: [{ date: input.date, text: 'Bill made', by }],
-        createdBy: by,
-    }
-    bills = [...bills, bill]
-    postCharge(bill, total, '')
-
-    let saved = bill
-    if (paid > 0) {
-        paySeq += 1
-        const payment: BillPayment = { id: `bp${paySeq}`, date: input.date, amount: paid, method: input.payment.method as 'cash' | 'bank', accountName: input.payment.accountName }
-        saved = replace({ ...saved, payments: [payment] })
-        postPayment(saved, payment)
-    }
-    if (input.takeAll) {
-        saved = (await giveStoneNow(saved.id, { date: input.date, vehicle: '', receivedBy: '', lines: saved.lines.map((l) => ({ lineNo: l.lineNo, qty: l.qty, inches: l.inches })) }, by)).bill
-    }
-    return saved
+    const isNew = input.customerId === 'new'
+    return request<Bill>(billsBase, {
+        body: {
+            customerId: walkin || isNew ? undefined : input.customerId,
+            walkin: walkin || undefined,
+            name: walkin || isNew ? input.name : undefined,
+            phone: walkin || isNew ? input.phone : undefined,
+            customerType: isNew ? input.customerType : undefined,
+            date: input.date,
+            factoryId: input.factoryId,
+            lines: input.lines.map((l) => lineBody(l, input.factoryId)),
+            discount: input.discount,
+            transport: input.transport,
+            note: input.note,
+            orderId: input.orderId ?? undefined,
+            payment: paymentBody(input.payment),
+            takeAll: input.takeAll,
+        },
+    })
 }
 
 /** Changes lines, rates, discount and transport. The old charge is reversed and the new one posted. */
-export const updateBill = async (id: string, input: Pick<BillInput, 'lines' | 'discount' | 'transport' | 'note' | 'date'>, by: string): Promise<Bill> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'active') throw new ApiError(409, { code: 'BILL_CANCELLED' })
-    if (input.date > today()) throw new ApiError(400, { code: 'DATE_IN_FUTURE' })
-    const lines = input.lines.map((l) => ({ ...l, item: { ...l.item, factoryId: current.factoryId } }))
-    // A collected line cannot be removed.
-    for (const old of current.lines) {
-        if (!lines.some((l) => l.lineNo === old.lineNo) && collectedOf(current, old.lineNo).qty > 0) throw new ApiError(409, { code: 'BELOW_COLLECTED', collected: collectedOf(current, old.lineNo).qty })
-    }
-    validateLines(lines, current.factoryId, id, current)
-    const total = totalOf(lines, input.discount, input.transport)
-    if (!(total > 0)) throw new ApiError(400, { code: 'TOTAL_REQUIRED' })
-
-    const next: Bill = {
-        ...current,
-        date: input.date,
-        lines,
-        discount: input.discount,
-        transport: input.transport,
-        note: input.note,
-        total,
-        log: [...current.log, { date: today(), text: `Edited · new total ${total}`, by }],
-    }
-    postReversal(current, current.total, 'edited · old charge taken back')
-    replace(next)
-    postCharge(next, total, ' · edited')
-    return next
-}
+export const updateBill = async (id: string, input: Pick<BillInput, 'lines' | 'discount' | 'transport' | 'note' | 'date'>, factoryId: string): Promise<Bill> =>
+    request<Bill>(`${billsBase}/${id}`, {
+        method: 'PATCH',
+        body: {
+            date: input.date,
+            lines: input.lines.map((l) => lineBody(l, factoryId)),
+            discount: input.discount,
+            transport: input.transport,
+            note: input.note,
+        },
+    })
 
 /** Only if nothing was collected. Payments stay as the customer's advance. */
-export const cancelBill = async (id: string, reason: string, by: string): Promise<Bill> => {
-    await delay()
-    const current = find(id)
-    if (current.status !== 'active') throw new ApiError(409, { code: 'BILL_CANCELLED' })
-    if (current.collections.length > 0) throw new ApiError(409, { code: 'HAS_COLLECTIONS' })
-    postReversal(current, current.total, 'cancelled')
-    return replace({ ...current, status: 'cancelled', cancelReason: reason, log: [...current.log, { date: today(), text: `Cancelled · ${reason}`, by }] })
-}
+export const cancelBill = (id: string, reason: string): Promise<Bill> => request<Bill>(`${billsBase}/${id}/cancel`, { body: { reason } })
 
 export type GiveInput = { date: string; vehicle: string; receivedBy: string; lines: { lineNo: number; qty: number; inches: number }[] }
 
-const giveStoneNow = async (billId: string, input: GiveInput, by: string): Promise<{ bill: Bill; collection: Collection }> => {
-    const bill = find(billId)
-    const lines = input.lines.filter((l) => l.qty > 0 || l.inches > 0)
-    if (lines.length === 0) throw new ApiError(400, { code: 'NOTHING_TO_GIVE' })
-    for (const l of lines) {
-        const line = bill.lines.find((x) => x.lineNo === l.lineNo)
-        if (!line) throw new ApiError(404, { code: 'notFound' })
-        const rem = remainingOf(bill, line)
-        if (l.qty > rem.qty || l.inches > rem.inches) throw new ApiError(409, { code: 'MORE_THAN_REMAINING', remaining: rem.qty })
-        const have = stockOnHand({ ...line.item, factoryId: bill.factoryId })
-        if (l.qty > have.qty) throw new ApiError(409, { code: 'INSUFFICIENT_STOCK', available: have.qty })
-        if (line.item.itemType === 'counter' && l.inches > have.inches) throw new ApiError(409, { code: 'INSUFFICIENT_INCHES', available: have.inches })
-    }
-    collSeq += 1
-    const collection: Collection = { id: crypto.randomUUID(), collNo: `G-${String(collSeq).padStart(3, '0')}`, date: input.date, vehicle: input.vehicle, receivedBy: input.receivedBy, lines, createdBy: by }
-    const next: Bill = {
-        ...bill,
-        collections: [...bill.collections, collection],
-    }
-    const after = toCollect(next)
-    next.log = [...bill.log, { date: input.date, text: `${after ? 'Part collected' : 'All stone collected'}${input.vehicle ? ` · ${input.vehicle}` : ''}`, by }]
-    // Stone leaves the yard only now, as one stock movement per collection.
-    toMovement(next, collection)
-    return { bill: replace(next), collection }
-}
-
 /** Gives stone now: the date, the vehicle, and how much of each line leaves the yard. */
-export const giveStone = async (billId: string, input: GiveInput, by: string): Promise<{ bill: Bill; collection: Collection }> => {
-    await delay()
-    const bill = find(billId)
-    if (bill.status !== 'active') throw new ApiError(409, { code: 'BILL_CANCELLED' })
-    if (input.date > today()) throw new ApiError(400, { code: 'DATE_IN_FUTURE' })
-    if (input.date < bill.date) throw new ApiError(400, { code: 'DATE_BEFORE_BILL' })
-    return giveStoneNow(billId, input, by)
+export const giveStone = async (billId: string, input: GiveInput): Promise<{ bill: Bill; collection: Collection }> => {
+    const bill = await request<Bill>(`${billsBase}/${billId}/collections`, {
+        body: {
+            date: input.date,
+            vehicle: input.vehicle,
+            receivedBy: input.receivedBy,
+            lines: input.lines.filter((l) => l.qty > 0 || l.inches > 0).map((l) => ({ lineNo: l.lineNo, qty: l.qty, inches: l.inches > 0 ? l.inches : undefined })),
+        },
+    })
+    await loadRealStock()
+    // The collection just made is the last one.
+    return { bill, collection: bill.collections[bill.collections.length - 1] }
 }
 
 /** The customer's balance after this bill: owed, or an advance (negative). */
@@ -550,58 +297,12 @@ export type SalesOrder = {
     cancelled: boolean
     note: string
     lines: OrderLine[]
+    /** Every payment received for the order, the first advance and any later ones. */
     advances: OrderAdvance[]
     createdBy: string
 }
 
 export type OrderStatus = 'open' | 'completed' | 'cancelled'
-
-const orderLine = (orderNo: string, lineNo: number, item: StockItem, qty: number, rate: number): OrderLine => ({
-    id: `${orderNo}:${lineNo}`,
-    lineNo,
-    item,
-    qty,
-    inches: 0,
-    tons: 0,
-    rate,
-    orderLineId: null,
-})
-
-// Seed: OR-001 for polished 4 soot stone nobody has made yet (all short, with an advance); OR-002 is in stock.
-let orders: SalesOrder[] = [
-    {
-        id: 'o1',
-        orderNo: 'OR-001',
-        date: '2026-10-07',
-        customerId: 'c5',
-        customerName: 'Al-Noor Developers',
-        factoryId: 'main',
-        factoryName: 'Saadat Marble — Main Factory',
-        neededBy: '2026-10-20',
-        cancelled: false,
-        note: 'Phase 2 lobby flooring',
-        lines: [orderLine('OR-001', 1, zw('4', '12x24', 'polished'), 300, 315)],
-        advances: [{ id: 'oa1', date: '2026-10-07', amount: 50000, method: 'cash', accountName: '' }],
-        createdBy: 'Wilayat Ali',
-    },
-    {
-        id: 'o2',
-        orderNo: 'OR-002',
-        date: '2026-10-09',
-        customerId: 'c4',
-        customerName: 'ABC Builders',
-        factoryId: 'main',
-        factoryName: 'Saadat Marble — Main Factory',
-        neededBy: '2026-10-14',
-        cancelled: false,
-        note: '',
-        lines: [orderLine('OR-002', 1, zw('14', '12x12'), 100, 210)],
-        advances: [],
-        createdBy: 'Rashid Khan',
-    },
-]
-
-let orderSeq = 2
 
 export const allOrders = () => orders
 
@@ -657,8 +358,7 @@ export const orderStatus = (order: SalesOrder): OrderStatus =>
 
 export const orderTotal = (order: SalesOrder) => order.lines.reduce((s, l) => s + lineAmount(l), 0)
 /** The advance paid with the order, plus any received later through Receive Payment. */
-export const advanceOf = (order: SalesOrder) =>
-    order.advances.reduce((s, a) => s + a.amount, 0) + advancePaymentsFor(order.id, order.advances.map((a) => a.id))
+export const advanceOf = (order: SalesOrder) => order.advances.reduce((s, a) => s + a.amount, 0)
 export const billsOfOrder = (order: SalesOrder) => bills.filter((b) => b.status === 'active' && b.orderId === order.id)
 
 /** How much of the order has been billed, as a percentage of what was ordered. */
@@ -673,12 +373,11 @@ export const orderBilledPercent = (order: SalesOrder) => {
 
 export type OrderFilters = { status?: OrderStatus }
 
-/** Sorted by the date it is needed. */
+/** Sorted by the date it is needed. Bills are loaded too, because progress is worked out from them. */
 export const listOrders = async (filters: OrderFilters = {}): Promise<SalesOrder[]> => {
-    await delay()
-    return orders
-        .filter((o) => !filters.status || orderStatus(o) === filters.status)
-        .sort((a, b) => a.neededBy.localeCompare(b.neededBy) || a.orderNo.localeCompare(b.orderNo))
+    const [all] = await Promise.all([request<SalesOrder[]>(ordersBase), listBills()])
+    orders = all
+    return all.filter((o) => !filters.status || orderStatus(o) === filters.status)
 }
 
 export type OrderInput = {
@@ -686,91 +385,26 @@ export type OrderInput = {
     date: string
     neededBy: string
     factoryId: string
-    factoryName: string
     lines: BillLine[]
     note: string
     advance: PaymentInput
 }
 
-export const createOrder = async (input: OrderInput, by: string): Promise<SalesOrder> => {
-    await delay()
-    if (input.customerId === 'walkin') throw new ApiError(400, { code: 'WALKIN_NO_ORDER' })
-    const customer = customerById(input.customerId)
-    if (!customer) throw new ApiError(404, { code: 'notFound' })
-    if (input.date > today()) throw new ApiError(400, { code: 'DATE_IN_FUTURE' })
-    if (input.neededBy < input.date) throw new ApiError(400, { code: 'NEEDED_BEFORE_ORDER' })
-    if (input.lines.length === 0) throw new ApiError(400, { code: 'NO_LINES' })
-    for (const l of input.lines) {
-        if (!(l.qty > 0)) throw new ApiError(400, { code: 'QTY_REQUIRED' })
-        if (!(l.rate > 0)) throw new ApiError(400, { code: 'RATE_REQUIRED' })
-        if (l.item.itemType === 'counter' && !(l.inches > 0)) throw new ApiError(400, { code: 'INCHES_REQUIRED' })
-        if (l.item.itemType === 'slab' && !(l.tons > 0)) throw new ApiError(400, { code: 'TONS_REQUIRED' })
-    }
-    const advance = input.advance.method === 'none' ? 0 : input.advance.amount
-    if (input.advance.method !== 'none' && !(advance > 0)) throw new ApiError(400, { code: 'PAYMENT_AMOUNT' })
-
-    orderSeq += 1
-    const orderNo = `OR-${String(orderSeq).padStart(3, '0')}`
-    const order: SalesOrder = {
-        id: crypto.randomUUID(),
-        orderNo,
-        date: input.date,
-        customerId: customer.id,
-        customerName: customer.name,
-        factoryId: input.factoryId,
-        factoryName: input.factoryName,
-        neededBy: input.neededBy,
-        cancelled: false,
-        note: input.note,
-        lines: input.lines.map((l, i) => ({ ...l, lineNo: i + 1, id: `${orderNo}:${i + 1}`, item: { ...l.item, factoryId: input.factoryId } })),
-        advances: [],
-        createdBy: by,
-    }
-    if (advance > 0) {
-        paySeq += 1
-        const adv: OrderAdvance = {
-            id: `oa${paySeq}`,
+export const createOrder = async (input: OrderInput): Promise<SalesOrder> =>
+    request<SalesOrder>(ordersBase, {
+        body: {
+            customerId: input.customerId,
             date: input.date,
-            amount: advance,
-            method: input.advance.method as 'cash' | 'bank',
-            accountName: input.advance.accountName,
-        }
-        order.advances = [adv]
-        noteReceipt({
-            id: adv.id,
-            date: adv.date,
-            customerId: customer.id,
-            customerName: customer.name,
-            amount: adv.amount,
-            method: adv.method,
-            accountName: adv.accountName,
-            orderId: order.id,
-            orderNo,
-            by,
-        })
-        // The advance is a credit on the customer's khata; FIFO applies it to their bills as they are made.
-        postCustomerEntry({
-            customerId: customer.id,
-            date: adv.date,
-            kind: 'credit',
-            amount: adv.amount,
-            detail: `Advance received · ${adv.method === 'cash' ? 'cash' : 'bank'} · ${orderNo}`,
-            sourceId: adv.id,
-        })
-    }
-    orders = [...orders, order]
-    return order
-}
+            neededBy: input.neededBy,
+            factoryId: input.factoryId,
+            lines: input.lines.map((l) => lineBody(l, input.factoryId)),
+            note: input.note,
+            advance: paymentBody(input.advance),
+        },
+    })
 
 /** Lines already billed stay on their bills and the advance stays in the khata. */
-export const cancelOrder = async (id: string): Promise<SalesOrder> => {
-    await delay()
-    const current = orders.find((o) => o.id === id)
-    if (!current) throw new ApiError(404, { code: 'notFound' })
-    const next = { ...current, cancelled: true }
-    orders = orders.map((o) => (o.id === id ? next : o))
-    return next
-}
+export const cancelOrder = (id: string): Promise<SalesOrder> => request<SalesOrder>(`${ordersBase}/${id}/cancel`, { body: {} })
 
 /** Open orders with stone short, for Production's "Needs attention". */
 export type ShortLine = { orderNo: string; customerName: string; item: StockItem; short: number; counter: boolean }

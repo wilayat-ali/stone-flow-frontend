@@ -22,7 +22,7 @@ import { todayIso } from '@/lib/format'
  * The sq.ft workers' feet for one day. Feet from production entries are already there, locked; type the rest
  * and save. Each worker gets one entry per day, at his own rate or the job rate card.
  */
-export function WorkRegisterTab({ canEnter, userName }: { canEnter: boolean; userName: string }) {
+export function WorkRegisterTab({ canEnter }: { canEnter: boolean }) {
     const t = useTranslations('expenses.register')
     const format = useFormatter()
     const money = useMoney()
@@ -40,7 +40,7 @@ export function WorkRegisterTab({ canEnter, userName }: { canEnter: boolean; use
     }
 
     const save = useMutation({
-        mutationFn: () => saveWorkRegister(date, (sheet.data?.rows ?? []).map((r) => ({ workerId: r.workerId, feet: feetOf(r.workerId, r.feet) })), userName),
+        mutationFn: () => saveWorkRegister(date, (sheet.data?.rows ?? []).map((r) => ({ workerId: r.workerId, feet: feetOf(r.workerId, r.feet) }))),
         onSuccess: () => {
             toast.success(t('saved'))
             setDrafts({})

@@ -5,20 +5,16 @@ import { DEFAULT_THEME, isThemeId } from '@/config/themes'
 import {
     COMPANY_COOKIE,
     COMPANY_THEME_COOKIE,
-    REFRESH_COOKIE,
     SESSION_COOKIE,
-    TOKEN_COOKIE,
+    SESSION_COOKIE_OPTIONS,
     WORKSPACE_COOKIE,
 } from '@/config/auth'
 import { api } from '@/lib/api'
 import { companyThemeCookie } from '@/lib/theme'
 import { serializeSession } from '@/lib/session'
+import { setSessionCookies } from '@/lib/session-cookies'
 
-export const cookieOptions = {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    path: '/',
-}
+export const cookieOptions = SESSION_COOKIE_OPTIONS
 
 export const REMEMBER_COMPANY = { ...cookieOptions, maxAge: 60 * 60 * 24 * 365 }
 
@@ -68,12 +64,11 @@ export async function loginWithCompany(input: {
 
 /** Stores a backend login response in httpOnly cookies; the active workspace is `company`. */
 export async function startSession(data: LoginResponse, company: string, fallbackEmail: string) {
-    const { token, refreshToken, tokenExpires, user } = data
+    const { token, refreshToken, user } = data
     const email = user.email ?? fallbackEmail
     const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || nameFromEmail(email)
     const store = await cookies()
-    store.set(TOKEN_COOKIE, token, { ...cookieOptions, expires: new Date(tokenExpires) })
-    store.set(REFRESH_COOKIE, refreshToken, cookieOptions)
+    setSessionCookies(store, { token, refreshToken })
     store.set(SESSION_COOKIE, serializeSession({ name, email }), cookieOptions)
     // Remembered so an expired session returns to this company's login page.
     store.set(COMPANY_COOKIE, company, REMEMBER_COMPANY)

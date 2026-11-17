@@ -17,8 +17,19 @@ export type ItemKey = {
     finish: Finish | null
 }
 
+/** An item the way the screens name it: material by name, soot as 14, size as 12x24, width in inches. */
+export type StockItemName =
+    | { itemType: 'piece'; material: string; factoryId: string; soot: string; size: string; finish: Finish }
+    | { itemType: 'counter'; material: string; factoryId: string; width: number; finish: Finish }
+    | { itemType: 'slab'; material: string; factoryId: string }
+
 /** One line of stock, summed from the movements. Never typed in by anyone. */
 export type StockRow = ItemKey & {
+    /** The same item by name, for the screens that are not on ids yet. */
+    item: StockItemName
+    /** The level below which the item shows as low, if one is set. */
+    minQty: number | null
+    low: boolean
     /** Pieces (or slabs). */
     qty: number
     /** Total inches; counters only, else 0. */
@@ -66,4 +77,5 @@ export type StockFilters = Partial<{
     factory: string
     lowOnly: boolean
     page: number
+    limit: number
 }>

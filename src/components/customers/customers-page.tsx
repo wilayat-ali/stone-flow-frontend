@@ -38,7 +38,7 @@ type BalanceFilter = NonNullable<CustomerFilters['balance']> | typeof ALL
  * One Customers page and one khata per customer. Everyone can view; the munshi can add customers and
  * receive payments; only the owner and partner set an opening balance.
  */
-export function CustomersPage({ roleKey, userName }: { roleKey: string; userName: string }) {
+export function CustomersPage({ roleKey }: { roleKey: string }) {
     const t = useTranslations('customers')
     const format = useFormatter()
     const money = useMoney()
@@ -260,11 +260,10 @@ export function CustomersPage({ roleKey, userName }: { roleKey: string; userName
             <ReceivePaymentSheet
                 open={payment !== null}
                 onOpenChange={(open) => !open && setPayment(null)}
-                userName={userName}
                 preset={payment ? { customerId: payment } : undefined}
             />
 
-            <ReceiveJobSheet open={receive !== null} onOpenChange={(open) => !open && setReceive(null)} customerId={receive ?? undefined} userName={userName} />
+            <ReceiveJobSheet open={receive !== null} onOpenChange={(open) => !open && setReceive(null)} customerId={receive ?? undefined} />
         </div>
     )
 }

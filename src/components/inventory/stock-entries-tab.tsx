@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { StatusBadge, type StatusTone } from '@/components/shared/status-badge'
 import { approvalsKey } from '@/features/approvals/api'
 import { inventoryQueryKey } from '@/features/inventory'
+import { stockKey } from '@/features/stock/api'
 import { useTableLabels } from '@/features/resource-labels'
 import {
     approveStockEntry,
@@ -37,11 +38,9 @@ const tone: Record<StockEntryStatus, StatusTone> = { pending: 'warning', approve
 /** Every opening, adjustment and transfer: pending ones first, with Approve / Reject for the owner. */
 export function StockEntriesTab({
     canApprove,
-    userName,
     initialStatus,
 }: {
     canApprove: boolean
-    userName: string
     initialStatus?: StockEntryStatus
 }) {
     const t = useTranslations('inventory.entries')
@@ -60,11 +59,11 @@ export function StockEntriesTab({
     const list = useQuery({ queryKey: [stockEntriesQueryKey, filters], queryFn: () => listStockEntries(filters) })
 
     const refresh = () => {
-        for (const key of [stockEntriesQueryKey, inventoryQueryKey, approvalsKey[0]]) queryClient.invalidateQueries({ queryKey: [key] })
+        for (const key of [stockEntriesQueryKey, inventoryQueryKey, stockKey[0], approvalsKey[0]]) queryClient.invalidateQueries({ queryKey: [key] })
     }
 
     const approve = useMutation({
-        mutationFn: (e: StockEntry) => approveStockEntry(e.id, userName),
+        mutationFn: (e: StockEntry) => approveStockEntry(e.id),
         onSuccess: () => {
             toast.success(t('approved'))
             refresh()
@@ -74,7 +73,7 @@ export function StockEntriesTab({
     })
 
     const reject = useMutation({
-        mutationFn: ({ entry, reason }: { entry: StockEntry; reason: string }) => rejectStockEntry(entry.id, reason, userName),
+        mutationFn: ({ entry, reason }: { entry: StockEntry; reason: string }) => rejectStockEntry(entry.id, reason),
         onSuccess: () => {
             toast.success(t('rejected'))
             setRejecting(null)

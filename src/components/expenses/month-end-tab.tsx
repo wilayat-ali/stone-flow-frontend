@@ -29,7 +29,7 @@ const months = monthOptions()
  * One month for every worker: brought forward, earned, loan instalment, paid and balance. Closing posts the
  * monthly salaries and the instalments once and locks the month; only the owner can re-open it.
  */
-export function MonthEndTab({ canClose, canReopen, userName }: { canClose: boolean; canReopen: boolean; userName: string }) {
+export function MonthEndTab({ canClose, canReopen }: { canClose: boolean; canReopen: boolean }) {
     const t = useTranslations('expenses.monthEnd')
     const tc = useTranslations('common')
     const format = useFormatter()
@@ -48,7 +48,7 @@ export function MonthEndTab({ canClose, canReopen, userName }: { canClose: boole
         }
     }
     const close = useMutation({
-        mutationFn: () => closeMonth(month, userName),
+        mutationFn: () => closeMonth(month),
         onSuccess: () => {
             toast.success(t('closedToast'))
             setConfirm(null)
@@ -60,7 +60,7 @@ export function MonthEndTab({ canClose, canReopen, userName }: { canClose: boole
         },
     })
     const reopen = useMutation({
-        mutationFn: () => reopenMonth(month, userName),
+        mutationFn: () => reopenMonth(month),
         onSuccess: () => {
             toast.success(t('reopenedToast'))
             setConfirm(null)
@@ -74,7 +74,8 @@ export function MonthEndTab({ canClose, canReopen, userName }: { canClose: boole
 
     const monthName = (m: string) => format.dateTime(new Date(`${m}-01T00:00:00`), { month: 'long', year: 'numeric' })
     const data = sheet.data
-    const preview = confirm === 'close' && data ? previewClose(month) : null
+    const previewQuery = useQuery({ queryKey: [monthEndQueryKey, month, 'preview'], queryFn: () => previewClose(month), enabled: confirm === 'close' })
+    const preview = confirm === 'close' ? (previewQuery.data ?? null) : null
     const entries = (log.data ?? []).filter((l) => l.month === month)
 
     return (

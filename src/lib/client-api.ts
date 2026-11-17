@@ -7,6 +7,20 @@ export class ApiError extends Error {
     }
 }
 
+let signingOut = false
+
+/**
+ * The session is over (the proxy answered 401 after trying to renew it, and cleared the cookies). Go to the
+ * start, where the sign-in page for the person's company is shown. Public pages (invites, resets) are left alone.
+ */
+function endSession(url: string) {
+    if (signingOut || typeof window === 'undefined' || url.startsWith('/api/auth/')) return
+    signingOut = true
+    // A full load on purpose: it drops everything the old session left in memory.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign(`${window.location.origin}/`)
+}
+
 /** JSON request to one of our own `/api/*` routes from the browser. Throws `ApiError` on failure. */
 export async function request<T>(
     url: string,
@@ -23,6 +37,7 @@ export async function request<T>(
         throw new ApiError(0, null)
     }
     const json = await response.json().catch(() => null)
+    if (response.status === 401) endSession(url)
     if (!response.ok) throw new ApiError(response.status, json)
     return json as T
 }

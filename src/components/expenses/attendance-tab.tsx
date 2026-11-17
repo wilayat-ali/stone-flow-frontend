@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
  * Daily and monthly workers for one day: everyone starts Present, tap A for the ones who were not there,
  * then Save. A daily worker earns only for saved days. No half-days.
  */
-export function AttendanceTab({ canEnter, userName }: { canEnter: boolean; userName: string }) {
+export function AttendanceTab({ canEnter }: { canEnter: boolean }) {
     const t = useTranslations('expenses.attendance')
     const queryClient = useQueryClient()
     const errorMessage = useExpenseErrorMessage()
@@ -33,7 +33,7 @@ export function AttendanceTab({ canEnter, userName }: { canEnter: boolean; userN
     const presentOf = (workerId: string, saved: boolean) => drafts[workerId] ?? saved
 
     const save = useMutation({
-        mutationFn: () => saveAttendance(date, rows.filter((r) => !presentOf(r.worker.id, r.present)).map((r) => r.worker.id), userName),
+        mutationFn: () => saveAttendance(date, rows.filter((r) => !presentOf(r.worker.id, r.present)).map((r) => r.worker.id)),
         onSuccess: () => {
             toast.success(t('saved'))
             setDrafts({})

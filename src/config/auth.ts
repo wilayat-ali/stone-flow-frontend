@@ -6,6 +6,20 @@ export const WORKSPACE_COOKIE = 'sf_workspace'
 export const ADMIN_SESSION_COOKIE = 'sf_admin_session'
 export const ADMIN_TOKEN_COOKIE = 'sf_admin_token'
 export const THEME_COOKIE = 'sf_theme'
+/** Set for a few seconds after the session was renewed, so a page is not renewed twice in a row. */
+export const RENEWED_COOKIE = 'sf_renewed'
+
+/**
+ * How long the login cookies live: as long as the backend's refresh token (30 days). The access token inside
+ * lasts 15 minutes and is renewed from the refresh token, so its cookie has to outlive it.
+ */
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 30
+
+export const SESSION_COOKIE_OPTIONS = {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    path: '/',
+}
 export const COMPANY_THEME_COOKIE = 'sf_company_theme'
 
 export const ROUTES = {

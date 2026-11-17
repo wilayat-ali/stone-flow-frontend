@@ -78,6 +78,21 @@ add the route + a `config/nav.ts` entry.
 - Dev indicator disabled (`devIndicators: false`) because it covered bottom-right controls.
 - Urdu font: Noto Naskh Arabic via `next/font` (`--font-urdu`); digits are Western (Intl default for `ur`).
 
+## Talking to the backend (sessions and the API proxy)
+
+- The browser never holds a token. Login stores `sf_token` and `sf_refresh` in httpOnly cookies, both for 30 days
+  (the backend's access token lasts 15 minutes and its refresh token 30 days; the access cookie must outlive its token).
+- Everything the screens fetch goes to `/api/<area>/...`, handled by the one catch-all `src/app/api/[...path]/route.ts`.
+  `src/lib/proxy-rules.ts` is the whitelist: **a new backend call must be added there** or it is a 404. Login, invites,
+  password reset, branding and the super admin keep their own routes.
+- Renewal: `src/lib/session-call.ts` renews an expired token from the refresh token, retries a refused call once, and only a
+  definite refusal (401/403/422) ends the session; a backend that is down gives 503 and nobody is signed out.
+  The backend retires the refresh token on every use, so `src/lib/token-refresh.ts` queues concurrent renewals into one
+  (and remembers the answer for 30 s for late callers). `proxy.ts` renews before server-rendered pages (they cannot set
+  cookies); Server Actions renew in `features/auth/actions.ts`. `lib/client-api.ts` sends the browser to `/` on a final 401.
+- The queue lives on `globalThis` so `proxy.ts` and the route handlers share it: it assumes one Node server. Several
+  servers would need the backend to accept the previous refresh token for a few seconds.
+
 ## Mock parts to replace with the real backend
 
 - `src/features/auth/actions.ts` + `src/lib/session.ts`: cookie-based fake session (`sf_session`, `sf_workspace`, `sf_admin_session`).

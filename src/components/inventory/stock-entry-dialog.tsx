@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/shared/date-picker'
 import { approvalsKey } from '@/features/approvals/api'
+import { stockKey } from '@/features/stock/api'
+import { canApprovePurchases } from '@/features/admin/roles'
 import { companySettingsKey, getCompanySettings } from '@/features/company-settings'
 import { counterWidthsQueryKey, listCounterWidths } from '@/features/counter-widths'
 import { factoriesQueryKey, listFactories } from '@/features/factories'
@@ -38,12 +40,10 @@ type Kind = 'piece' | 'counter' | 'slab'
 export function StockEntryDialog({
     open,
     roleKey,
-    userName,
     onClose,
 }: {
     open: boolean
     roleKey: string
-    userName: string
     onClose: () => void
 }) {
     const t = useTranslations('inventory.entry')
@@ -54,13 +54,13 @@ export function StockEntryDialog({
                     <DialogTitle>{t('title')}</DialogTitle>
                     <DialogDescription>{t('description')}</DialogDescription>
                 </DialogHeader>
-                {open && <Form roleKey={roleKey} userName={userName} onClose={onClose} />}
+                {open && <Form roleKey={roleKey} onClose={onClose} />}
             </DialogContent>
         </Dialog>
     )
 }
 
-function Form({ roleKey, userName, onClose }: { roleKey: string; userName: string; onClose: () => void }) {
+function Form({ roleKey, onClose }: { roleKey: string; onClose: () => void }) {
     const t = useTranslations('inventory.entry')
     const tc = useTranslations('common')
     const tf = useTranslations('inventory.item.finishes')
@@ -106,7 +106,8 @@ function Form({ roleKey, userName, onClose }: { roleKey: string; userName: strin
 
     const have = item ? stockOnHand(item) : null
     const removes = type === 'transfer' || (type === 'adjustment' && direction === '-1')
-    const pending = roleKey === 'munshi' && (settings.data?.approvalRequired ?? true)
+    // Only a hint for the label: the backend decides whether the entry waits.
+    const pending = !canApprovePurchases(roleKey) && (settings.data?.approvalRequired ?? true)
 
     const save = useMutation({
         mutationFn: () =>
@@ -123,12 +124,11 @@ function Form({ roleKey, userName, onClose }: { roleKey: string; userName: strin
                     factoryName: own.find((f) => f.id === factoryId)?.name ?? '',
                     toFactoryId: type === 'transfer' ? toFactoryId : null,
                     toFactoryName: type === 'transfer' ? (own.find((f) => f.id === toFactoryId)?.name ?? null) : null,
-                },
-                { pending, by: userName, roleKey }
+                }
             ),
         onSuccess: (entry) => {
             toast.success(entry.status === 'pending' ? t('sentForApproval', { no: entry.entryNo }) : t('saved', { no: entry.entryNo }))
-            for (const key of [stockEntriesQueryKey, inventoryQueryKey, approvalsKey[0]]) queryClient.invalidateQueries({ queryKey: [key] })
+            for (const key of [stockEntriesQueryKey, inventoryQueryKey, stockKey[0], approvalsKey[0]]) queryClient.invalidateQueries({ queryKey: [key] })
             onClose()
         },
         onError: (error) => toast.error(errorMessage(error)),

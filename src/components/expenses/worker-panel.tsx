@@ -56,7 +56,7 @@ export function WorkerPanel({
         }
     }
     const decide = useMutation({
-        mutationFn: ({ id, approve }: { id: string; approve: boolean }) => (approve ? confirmWorkerPayment(id) : rejectWorkerPayment(id)),
+        mutationFn: ({ id, approve }: { id: string; approve: boolean }) => (approve ? confirmWorkerPayment(id) : rejectWorkerPayment(id, 'Rejected by the owner')),
         onSuccess: (_, { approve }) => {
             toast.success(approve ? t('panel.confirmed') : t('panel.rejected'))
             refresh()

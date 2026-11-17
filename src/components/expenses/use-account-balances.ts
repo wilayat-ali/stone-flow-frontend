@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { accountsKey, entriesKey, listAccounts, listEntries } from '@/features/bank-cash/api'
 import { balanceOf } from '@/features/bank-cash/ledger'
-import { accountOutflow, getMunshiCash, MUNSHI_ACCOUNT_ID, munshiBalance, munshiCashQueryKey } from '@/features/expenses'
+import { getMunshiCash, munshiCashQueryKey } from '@/features/expenses'
 
 export type PayAccount = {
     id: string
@@ -12,23 +12,24 @@ export type PayAccount = {
 }
 
 /**
- * Every active account an expense can be paid from, with what is left in it: the ledger balance less
- * what expenses and cash given to the munshi have already taken. Munshi cash is listed too.
+ * Every active account an expense can be paid from, with what is left in it (the ledger's balance). The
+ * munshi's cash is an account of its own on the backend, listed first as the munshi's pay account.
  */
 export function useAccountBalances(enabled: boolean, munshiLabel: string) {
     const accounts = useQuery({ queryKey: accountsKey, queryFn: listAccounts, enabled })
     const entries = useQuery({ queryKey: entriesKey, queryFn: listEntries, enabled, retry: false })
     const munshi = useQuery({ queryKey: [munshiCashQueryKey], queryFn: getMunshiCash, enabled })
 
+    const munshiId = munshi.data?.accountId
     const real: PayAccount[] = (accounts.data ?? [])
-        .filter((a) => a.isActive)
+        .filter((a) => a.isActive && a.id !== munshiId)
         .map((a) => ({
             id: a.id,
             name: a.name,
             kind: a.kind,
-            balance: entries.data ? balanceOf(a, entries.data) - accountOutflow(a.id) : null,
+            balance: entries.data ? balanceOf(a, entries.data) : null,
         }))
-    const munshiAccount: PayAccount = { id: MUNSHI_ACCOUNT_ID, name: munshiLabel, kind: 'munshi', balance: munshi.data ? munshiBalance() : null }
+    const munshiAccount: PayAccount = { id: munshiId ?? '', name: munshiLabel, kind: 'munshi', balance: munshi.data ? munshi.data.balance : null }
 
     return { accounts: real, munshi: munshiAccount, loading: accounts.isLoading }
 }
