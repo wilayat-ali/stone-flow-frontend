@@ -382,18 +382,13 @@
         }
     },
     "workspace": {
-        "title": "ورک اسپیس منتخب کریں",
-        "description": "وہ ورک اسپیس منتخب کریں جس کے ساتھ آپ جاری رکھنا چاہتے ہیں",
-        "enter": "کھولیں",
         "switcher": "ورک اسپیسز",
         "plans": {
             "free": "مفت",
             "pro": "پرو",
             "enterprise": "انٹرپرائز"
         },
-        "members": "{count, plural, one {# رکن} other {# ارکان}}",
-        "empty": "آپ ابھی کسی ورک اسپیس کے رکن نہیں ہیں۔",
-        "selectFailed": "یہ ورک اسپیس نہیں کھل سکا۔ دوبارہ کوشش کریں۔"
+        "members": "{count, plural, one {# رکن} other {# ارکان}}"
     },
     "user": {
         "upgrade": "پرو میں اپ گریڈ کریں",

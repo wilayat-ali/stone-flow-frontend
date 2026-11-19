@@ -45,7 +45,6 @@ and off for `ui/chart.tsx` (Recharts attribute selectors). Lint must stay clean.
 ```
 src/app/[locale]/
   (auth)/            login (+OTP step), signup, forgot-password, set-password
-  (workspace)/       select-workspace
   (app)/             layout (guard) -> dashboard, admin-center/{overview,users,roles}
   s-admin/auth/login, s-admin/(portal)/{home,workspaces}
 src/components/ui         shadcn primitives (regenerate with `npx shadcn@latest add <x> -o`, then re-check rules)

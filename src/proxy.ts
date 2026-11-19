@@ -92,8 +92,11 @@ export default async function proxy(request: NextRequest) {
 
     if (!has(TOKEN_COOKIE)) return go(loginRoute())
     if (path === '/') return go(ROUTES.dashboard)
-    if (path !== ROUTES.selectWorkspace && !has(WORKSPACE_COOKIE)) {
-        return go(ROUTES.selectWorkspace)
+    // No workspace means the session has nothing to open: end it and send the user to sign in again.
+    if (!has(WORKSPACE_COOKIE)) {
+        const out = go(loginRoute())
+        clearSessionCookies(out.cookies)
+        return out
     }
 
     return response

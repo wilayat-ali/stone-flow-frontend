@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { redirect } from '@/i18n/navigation'
+import { redirect as nextRedirect } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
 import { AppShell } from '@/components/layout/app-shell'
 import { CompanyTheme } from '@/components/shared/company-theme'
@@ -21,7 +22,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
     // proxy.ts already guards these; this is the server-side safety net.
     if (!session) return redirect({ href: ROUTES.login, locale })
-    if (!workspace) return redirect({ href: ROUTES.selectWorkspace, locale })
+    // A session whose workspace is gone ends (see /api/auth/end-session); a page cannot clear cookies itself.
+    if (!workspace) return nextRedirect(`/api/auth/end-session?locale=${locale}`)
 
     return (
         <AppShell

@@ -19,7 +19,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar'
-import { ROUTES } from '@/config/auth'
+import { ROUTES, companyLoginRoute } from '@/config/auth'
 import { adminLogoutAction, logoutAction } from '@/features/auth/actions'
 import { useDirection } from '@/hooks/use-direction'
 import { generateInitials } from '@/lib/utils'
@@ -58,8 +58,8 @@ export function UserMenu({ user, variant }: UserMenuProps) {
             await adminLogoutAction()
             router.replace(ROUTES.superAdminLogin)
         } else {
-            await logoutAction()
-            router.replace(ROUTES.login)
+            const company = await logoutAction()
+            router.replace(company ? companyLoginRoute(company) : ROUTES.login)
         }
     }
 

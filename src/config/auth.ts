@@ -25,7 +25,6 @@ export const COMPANY_THEME_COOKIE = 'sf_company_theme'
 export const ROUTES = {
     login: '/login',
     forgotPassword: '/forgot-password',
-    selectWorkspace: '/select-workspace',
     dashboard: '/dashboard',
     adminCenter: '/admin-center/users',
     superAdminLogin: '/s-admin/auth/login',
@@ -46,7 +45,6 @@ export const PUBLIC_AUTH_PATHS: string[] = [
 const APP_ROOTS = [
     ROUTES.login,
     ROUTES.forgotPassword,
-    ROUTES.selectWorkspace,
     ROUTES.dashboard,
     '/admin-center',
     '/settings',

@@ -382,18 +382,13 @@
         }
     },
     "workspace": {
-        "title": "Select a workspace",
-        "description": "Choose the workspace you want to continue with",
-        "enter": "Open",
         "switcher": "Workspaces",
         "plans": {
             "free": "Free",
             "pro": "Pro",
             "enterprise": "Enterprise"
         },
-        "members": "{count, plural, one {# member} other {# members}}",
-        "empty": "You are not a member of any workspace yet.",
-        "selectFailed": "Could not open this workspace. Try again."
+        "members": "{count, plural, one {# member} other {# members}}"
     },
     "user": {
         "upgrade": "Upgrade to Pro",

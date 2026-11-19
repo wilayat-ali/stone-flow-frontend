@@ -5,6 +5,7 @@ import {
     ADMIN_SESSION_COOKIE,
     ADMIN_TOKEN_COOKIE,
     COMPANY_COOKIE,
+    COMPANY_SLUG_PATTERN,
     COMPANY_THEME_COOKIE,
     REFRESH_COOKIE,
     SESSION_COOKIE,
@@ -52,9 +53,11 @@ export async function selectWorkspaceAction(id: string): Promise<boolean> {
     return true
 }
 
-export async function logoutAction() {
+/** Ends the session. Returns the company it belonged to, so the caller can send the user to that company's login. */
+export async function logoutAction(): Promise<string | undefined> {
     const store = await cookies()
     const token = store.get(TOKEN_COOKIE)?.value
+    const company = store.get(COMPANY_COOKIE)?.value
     if (token) await api('/auth/logout', { method: 'POST', token })
     store.delete(TOKEN_COOKIE)
     store.delete(REFRESH_COOKIE)
@@ -62,6 +65,8 @@ export async function logoutAction() {
     store.delete(WORKSPACE_COOKIE)
     // The company theme belongs to the session that is ending.
     store.delete(COMPANY_THEME_COOKIE)
+    // COMPANY_COOKIE stays: it is the remembered login page for this company.
+    return company && COMPANY_SLUG_PATTERN.test(company) ? company : undefined
 }
 
 export async function adminLogoutAction() {
